@@ -1,0 +1,52 @@
+{
+	"name": "backend",
+	"version": "0.0.1",
+	"description": "Flap backend",
+	"homepage": "https://github.com/whiplash-khu/backend#readme",
+	"bugs": {
+		"url": "https://github.com/whiplash-khu/backend/issues"
+	},
+	"repository": {
+		"type": "git",
+		"url": "git+https://github.com/whiplash-khu/backend.git"
+	},
+	"license": "MIT",
+	"contributors": [
+		{
+			"name": "H2Owater425",
+			"email": "h2o@dhmo.kr"
+		},
+		{
+			"name": "seoeunbi25",
+			"email": "seoeunbi25@naver.com"
+		}
+	],
+	"main": "distribution/application.js",
+	"scripts": {
+		"build": "tsc --project tsconfig.json && tsc-alias -p tsconfig.json",
+		"start": "node distribution/application.js",
+		"dev": "cross-env TS_NODE_FILES=true NODE_ENV=development node --watch --require ts-node/register --require tsconfig-paths/register source/application.ts"
+	},
+	"dependencies": {
+		"@aws-sdk/client-s3": "^3.864.0",
+		"@elastic/elasticsearch": "^9.1.1",
+		"@fastify/multipart": "^9.0.3",
+		"@socket.io/redis-adapter": "^8.3.0",
+		"dotenv": "^17.2.1",
+		"fastify": "^5.4.0",
+		"fluent-json-schema": "^6.0.0",
+		"kysely": "^0.28.4",
+		"pg": "^8.16.3",
+		"smtp-channel": "^0.2.4",
+		"socket.io": "^4.8.1",
+		"tsconfig-paths": "^4.2.0"
+	},
+	"devDependencies": {
+		"@types/node": "^24.2.1",
+		"@types/pg": "^8.15.5",
+		"cross-env": "^10.0.0",
+		"ts-node": "^10.9.2",
+		"tsc-alias": "^1.8.16",
+		"typescript": "^5.9.2"
+	}
+}
