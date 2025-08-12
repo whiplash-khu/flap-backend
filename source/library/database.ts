@@ -18,9 +18,7 @@ export function createUniqueToken(kysely: Kysely<Database>, table: 'user_lost_pa
 		.select(sql.lit(1).as('v'))
 		.where('token', '=', token)
 		.executeTakeFirst()
-		.then(function (row?: {
-			v: number;
-		}): Promise<string> | string {
+		.then(function (row?: {}): Promise<string> | string {
 			if(row === undefined) {
 				return token;
 			}
