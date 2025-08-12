@@ -3,6 +3,8 @@ import getRootController from './getRoot.controller';
 import postAndGetCoffeeController from './postAndGetCoffee.controller';
 import getRobotsTxtController from './getRobotsTxt.controller';
 import dotWellKnownModule from './dotWellKnown/dotWellKnown.module';
+import authModule from './auth/auth.module';
+import usersModule from './users/users.module';
 
 export default new Module('/', [{
 	method: 'GET',
@@ -26,4 +28,4 @@ export default new Module('/', [{
 	url: 'robots.txt',
 	handler: getRobotsTxtController,
 	excludePreHandler: true
-}], [dotWellKnownModule]);
+}], [authModule, dotWellKnownModule, usersModule]);
