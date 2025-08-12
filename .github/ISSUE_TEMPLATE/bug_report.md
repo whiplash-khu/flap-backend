@@ -1,3 +1,12 @@
+---
+name: Bug report
+about: Create a report to help us improve
+title: ''
+labels: bug
+assignees: ''
+
+---
+
 ## Description
 <!-- 오류에 대한 설명 -->
 
@@ -29,4 +38,4 @@
 
 ## Notes
 <!-- 추가로 남길 말 -->
-- 
+-
