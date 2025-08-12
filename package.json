@@ -1,7 +1,6 @@
 {
-	"name": "backend",
+	"name": "flap-backend",
 	"version": "0.0.1",
-	"description": "Flap backend",
 	"homepage": "https://github.com/whiplash-khu/backend#readme",
 	"bugs": {
 		"url": "https://github.com/whiplash-khu/backend/issues"
