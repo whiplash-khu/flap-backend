@@ -1,5 +1,5 @@
-import { Kysely, PostgresDialect, sql } from 'kysely';
-import { Database } from './type';
+import { Insertable, Kysely, OnConflictBuilder, OnConflictUpdateBuilder, PostgresDialect, sql } from 'kysely';
+import { Database, Tag, TagTable } from './type';
 import { Pool } from 'pg';
 import { randomBytes } from 'crypto';
 
@@ -15,7 +15,7 @@ export function createUniqueToken(kysely: Kysely<Database>, table: 'user_lost_pa
 	const token: string = randomBytes(32).toString('hex');
 
 	return kysely.selectFrom(table)
-		.select(sql.lit(1).as('v'))
+		.select(sql<number>`1`.as('v'))
 		.where('token', '=', token)
 		.executeTakeFirst()
 		.then(function (row?: {}): Promise<string> | string {
@@ -25,4 +25,37 @@ export function createUniqueToken(kysely: Kysely<Database>, table: 'user_lost_pa
 
 			return createUniqueToken(kysely, table);
 		});
+}
+
+export function isMediaValid(kysely: Kysely<Database>, id: number): Promise<boolean> {
+	if(id === 0) {
+		return Promise.resolve(true);
+	}
+
+	return kysely.selectFrom('media')
+		.select(sql<number>`1`.as('v'))
+		.executeTakeFirst()
+		.then(function (media?: {}): boolean {
+			return media !== undefined;
+		});
+}
+
+export function createTags(kysely: Kysely<Database>, names: Tag['name'][]): Promise<Pick<Tag, 'id'>[]> {
+	const tagInserts: Insertable<TagTable>[] = [];
+
+	for(let i: number = 0; i < names['length']; i++) {
+		tagInserts.push({
+			name: names[i]
+		});
+	}
+
+	return kysely.insertInto('tag')
+		.values(tagInserts)
+		.onConflict(function (builder: OnConflictBuilder<Database, 'tag'>): OnConflictUpdateBuilder<Database, 'tag'> {
+			return builder.column('name')
+				// to retreive id
+				.doUpdateSet('name');
+		})
+		.returning('id')
+		.execute();
 }
