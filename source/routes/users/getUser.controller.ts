@@ -1,7 +1,8 @@
 import { kysely } from '@library/database';
 import { NotFound } from '@library/httpError';
-import { Media, User } from '@library/type';
+import { Database, Media, User } from '@library/type';
 import { FastifyReply, FastifyRequest } from 'fastify';
+import { SelectQueryBuilder } from 'kysely';
 
 export default function (request: FastifyRequest<{
 	Params: {
@@ -9,7 +10,10 @@ export default function (request: FastifyRequest<{
 	};
 }>, reply: FastifyReply): Promise<void> {
 	return kysely.selectFrom('user')
-		.select(request['userId'] === request['params']['userId'] ? ['user.email', 'user.name', 'user.birth_at as birthAt', 'user.school'] : ['user.name', 'user.school'])
+		.select(['user.name', 'user.school'])
+		.$if(request['userId'] === request['params']['userId'], function (queryBuilder: SelectQueryBuilder<Database, 'user', Pick<User, 'name' | 'school'>>): SelectQueryBuilder<Database, 'user', Pick<User, 'name' | 'school' | 'email' | 'birthAt'>> {
+			return queryBuilder.select(['user.email', 'user.birth_at as birthAt']);
+		})
 		.innerJoin('media', 'user.media_id', 'media.id')
 		.select(['media.hash', 'media.type'])
 		.where('user.id', '=', request['params']['userId'])
