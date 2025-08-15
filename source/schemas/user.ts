@@ -1,6 +1,7 @@
 import { User } from '@library/type';
 import S, { JSONSchema } from 'fluent-json-schema';
 import commonSchema from './common';
+import mediaSchema from './media';
 
 export default {
 	id: commonSchema['id'],
@@ -14,5 +15,5 @@ export default {
 		.minLength(10)
 		.maxLength(24),
 	birthAt: commonSchema['date'],
-	mediaId: commonSchema['id']
+	mediaId: mediaSchema['id']
 } satisfies Record<keyof Omit<User, 'salt' | 'createdAt' | 'deletedAt'>, JSONSchema>;
