@@ -7,33 +7,33 @@ import chat from "@schemas/chat";
 import chatMessage from '@schemas/chatMessage';
 
 export default new Module('chats', [{
-    method: 'POST',
-    url: '',
-    handler: postChatController,
-    schema: {
-        body: S.object()
-            .prop('name', chat['name'].required())
-    }
+	method: 'POST',
+	url: '',
+	handler: postChatController,
+	schema: {
+		body: S.object()
+			.prop('name', chat['name'].required())
+	}
 }, {
-    method: 'GET',
-    url: '',
-    handler: getChatController,
+	method: 'GET',
+	url: '',
+	handler: getChatController,
 }, {
-    method: 'POST',
-    url: ':chatId/messages',
-    handler: postChatMessageController,
-    schema: {
-        params: S.object()
-            .prop('chatId', chat['id'].required()),
-        body: S.object()
-            .prop('content', chatMessage['content'].required())
-    }
+	method: 'POST',
+	url: ':chatId/messages',
+	handler: postChatMessageController,
+	schema: {
+		params: S.object()
+			.prop('chatId', chat['id'].required()),
+		body: S.object()
+			.prop('content', chatMessage['content'].required())
+	}
 }, {
-    method: 'GET',
-    url: ':chatId/messages',
-    handler: getChatMessageController,
-    schema: {
-        params: S.object()
-            .prop('chatId', chat['id'].required())
-    }
+	method: 'GET',
+	url: ':chatId/messages',
+	handler: getChatMessageController,
+	schema: {
+		params: S.object()
+			.prop('chatId', chat['id'].required())
+	}
 }])
