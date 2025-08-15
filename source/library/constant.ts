@@ -106,3 +106,5 @@ export const LOST_PASSWORD_TEMPLATE: string = `<body style="margin:100px auto;wi
 			href="https://flap.kr/auth/lostEmail?token={token}">https://flap.kr/auth/lostEmail?token={token}</a>
 	</footer>
 </body>`;
+
+export const TAG_REGULAR_EXPRESSION: RegExp = /(?<=#)[a-zA-Z0-9ㄱ-ㅣ가-힣_]{1,16}/g;
