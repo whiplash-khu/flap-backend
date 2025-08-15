@@ -16,7 +16,7 @@ export default function (request: FastifyRequest<{
 			let token: string;
 
 			return kysely.selectFrom('user')
-				.select(sql.lit(1).as('v'))
+				.select(sql<number>`1`.as('v'))
 				.where('email', '=', request['body']['email'])
 				.executeTakeFirst()
 				.then(function (row?: {}): Promise<string> {
