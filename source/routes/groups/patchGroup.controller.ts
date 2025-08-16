@@ -64,7 +64,7 @@ export default function (request: FastifyRequest<{
 					const tagNames: Tag['name'][] = TAG_REGULAR_EXPRESSION.exec(request['body']['introduction']) || [];
 
 					return transaction.selectFrom('group_tag')
-						.select(kysely.fn<number>('count', [sql`*`]).as('count'))
+						.select(kysely.fn.countAll<number>().as('count'))
 						.innerJoin('tag', 'group_tag.tag_id', 'tag.id')
 						.where('group_tag.group_id', '=', request['params']['groupId'])
 						.where('tag.name', 'in', tagNames)
