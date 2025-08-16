@@ -1,7 +1,8 @@
-import { Kysely, PostgresDialect, sql } from 'kysely';
+import { AliasedExpression, ComparisonOperatorExpression, Kysely, OperandValueExpressionOrList, PostgresDialect, ReferenceExpression, SelectQueryBuilder, sql, SqlBool } from 'kysely';
 import { Database } from './type';
 import { Pool } from 'pg';
 import { randomBytes } from 'crypto';
+import { emptySelection } from './constant';
 
 export const kysely: Kysely<Database> = new Kysely<Database>({
 	dialect: new PostgresDialect({
@@ -15,8 +16,9 @@ export function createUniqueToken(kysely: Kysely<Database>, table: 'user_lost_pa
 	const token: string = randomBytes(32).toString('hex');
 
 	return kysely.selectFrom(table)
-		.select(sql.lit(1).as('v'))
+		.select(emptySelection)
 		.where('token', '=', token)
+		.limit(1)
 		.executeTakeFirst()
 		.then(function (row?: {}): Promise<string> | string {
 			if(row === undefined) {

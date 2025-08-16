@@ -1,3 +1,5 @@
+import { AliasedRawBuilder, sql } from 'kysely';
+
 export const ENVIRONMENT_VARIABLE_NAMES = [
 	'DATABASE_URL',
 	'CACHE_DATABASE_URL',
@@ -106,3 +108,5 @@ export const LOST_PASSWORD_TEMPLATE: string = `<body style="margin:100px auto;wi
 			href="https://flap.kr/auth/lostEmail?token={token}">https://flap.kr/auth/lostEmail?token={token}</a>
 	</footer>
 </body>`;
+
+export const emptySelection: AliasedRawBuilder<number, '1'> = sql<number>`1`.as('1');
