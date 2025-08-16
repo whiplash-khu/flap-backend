@@ -251,3 +251,8 @@ export type ChatMessage = Selectable<CamelizeKeys<ChatMessageTable>>;
 export type Verification = Selectable<CamelizeKeys<VerificationTable>>;
 
 export type UserLostPassword = Selectable<CamelizeKeys<UserLostPasswordTable>>;
+
+export interface Pagenation {
+	index?: number;
+	size: number;
+}
