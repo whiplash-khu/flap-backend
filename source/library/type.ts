@@ -1,6 +1,6 @@
 import { FastifyBaseLogger, FastifyReply, FastifySchema, FastifyTypeProvider, HTTPMethods, RouteHandlerMethod, RouteOptions as _RouteOptions } from 'fastify';
 import { IncomingMessage, Server, ServerResponse } from 'http';
-import { ArraySchema, BooleanSchema, IntegerSchema, NullSchema, NumberSchema, ObjectSchema, StringSchema } from 'fluent-json-schema';
+import { ArraySchema, BooleanSchema, ExtendedSchema, IntegerSchema, NullSchema, NumberSchema, ObjectSchema, StringSchema } from 'fluent-json-schema';
 import { ColumnType, GeneratedAlways, Selectable } from 'kysely';
 
 export type RequiredJSONSchema = ObjectSchema | StringSchema | NumberSchema | ArraySchema | IntegerSchema | BooleanSchema;
@@ -8,7 +8,7 @@ export type RequiredJSONSchema = ObjectSchema | StringSchema | NumberSchema | Ar
 export interface RouteOptions extends Omit<_RouteOptions, 'handler' | 'schema'> {
 	method: HTTPMethods;
 	handler: RouteHandlerMethod<Server, IncomingMessage, ServerResponse, any, unknown, FastifySchema, FastifyTypeProvider, FastifyBaseLogger>;
-	schema?: Partial<Record<'body' | 'querystring' | 'params' | 'headers', ObjectSchema | NullSchema>>;
+	schema?: Partial<Record<'body' | 'querystring' | 'params' | 'headers', ObjectSchema | NullSchema | ExtendedSchema | ArraySchema>>;
 	excludePreHandler?: boolean;
 }
 
@@ -251,3 +251,8 @@ export type ChatMessage = Selectable<CamelizeKeys<ChatMessageTable>>;
 export type Verification = Selectable<CamelizeKeys<VerificationTable>>;
 
 export type UserLostPassword = Selectable<CamelizeKeys<UserLostPasswordTable>>;
+
+export interface Pagenation {
+	index?: number;
+	size: number;
+}

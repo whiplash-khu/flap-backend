@@ -1,3 +1,5 @@
+import { AliasedRawBuilder, sql } from 'kysely';
+
 export const ENVIRONMENT_VARIABLE_NAMES = [
 	'DATABASE_URL',
 	'CACHE_DATABASE_URL',
@@ -108,3 +110,5 @@ export const LOST_PASSWORD_TEMPLATE: string = `<body style="margin:100px auto;wi
 </body>`;
 
 export const TAG_REGULAR_EXPRESSION: RegExp = /(?<=#)[a-zA-Z0-9ㄱ-ㅣ가-힣_]{1,16}/g;
+
+export const emptySelection: AliasedRawBuilder<number, '1'> = sql<number>`1`.as('1');

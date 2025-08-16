@@ -5,6 +5,7 @@ import getRobotsTxtController from './getRobotsTxt.controller';
 import dotWellKnownModule from './dotWellKnown/dotWellKnown.module';
 import authModule from './auth/auth.module';
 import usersModule from './users/users.module';
+import chatsModule from './chats/chats.module';
 import groupsModule from './groups/groups.module';
 
 export default new Module('/', [{
@@ -29,4 +30,4 @@ export default new Module('/', [{
 	url: 'robots.txt',
 	handler: getRobotsTxtController,
 	excludePreHandler: true
-}], [authModule, dotWellKnownModule, groupsModule, usersModule]);
+}], [authModule, dotWellKnownModule, chatsModule, groupsModule, usersModule]);
