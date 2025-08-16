@@ -1,4 +1,4 @@
-import { VERIFICATION_TEMPLATE } from '@library/constant';
+import { emptySelection, VERIFICATION_TEMPLATE } from '@library/constant';
 import { kysely, createUniqueToken } from '@library/database';
 import { BadRequest } from '@library/httpError';
 import { sendMail } from '@library/mailer';
@@ -16,8 +16,9 @@ export default function (request: FastifyRequest<{
 			let token: string;
 
 			return kysely.selectFrom('user')
-				.select(sql.lit(1).as('v'))
+				.select(emptySelection)
 				.where('email', '=', request['body']['email'])
+				.limit(1)
 				.executeTakeFirst()
 				.then(function (row?: {}): Promise<string> {
 					if(row !== undefined) {
@@ -48,7 +49,7 @@ export default function (request: FastifyRequest<{
 				})
 				.then(function (): void {
 					reply.status(204)
-					.send();
+						.send();
 				});
 		});
 }
