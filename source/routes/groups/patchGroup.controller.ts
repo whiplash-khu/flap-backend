@@ -3,7 +3,7 @@ import { createTags, isMediaValid, kysely } from '@library/database';
 import { BadRequest, NotFound, Unauthorized } from '@library/httpError';
 import { Database, Group, GroupTagTable, Tag } from '@library/type';
 import { FastifyReply, FastifyRequest } from 'fastify';
-import { Insertable, InsertResult, OnConflictBuilder, OnConflictDoNothingBuilder, SelectQueryBuilder, sql, Transaction, UpdateResult } from 'kysely';
+import { DeleteResult, Insertable, InsertResult, OnConflictBuilder, OnConflictDoNothingBuilder, SelectQueryBuilder, Transaction, UpdateResult } from 'kysely';
 
 export default function (request: FastifyRequest<{
 	Params: {
@@ -56,53 +56,38 @@ export default function (request: FastifyRequest<{
 						.where('id', '=', request['params']['groupId'])
 						.executeTakeFirst();
 				})
-				.then(function (): Promise<InsertResult[] | undefined> | undefined {
+				.then(function (): Promise<(DeleteResult | InsertResult)[]> | undefined {
 					if(request['body']['introduction'] === undefined) {
 						return;
 					}
 
-					const tagNames: Tag['name'][] = TAG_REGULAR_EXPRESSION.exec(request['body']['introduction']) || [];
+					return createTags(transaction, TAG_REGULAR_EXPRESSION.exec(request['body']['introduction']) || [])
+					.then(function (tags: Pick<Tag, 'id'>[]): Promise<(DeleteResult | InsertResult)[]> {
+						const tagIds: Tag['id'][] = [];
+						const groupTagInserts: Insertable<GroupTagTable>[] = [];
 
-					return transaction.selectFrom('group_tag')
-						.select(kysely.fn.countAll<number>().as('count'))
-						.innerJoin('tag', 'group_tag.tag_id', 'tag.id')
-						.where('group_tag.group_id', '=', request['params']['groupId'])
-						.where('tag.name', 'in', tagNames)
-						.executeTakeFirstOrThrow()
-						.then(function (row: {
-							count: number;
-						}): Promise<InsertResult[]> | undefined {
-							if(row['count'] === tagNames['length']) {
-								return;
-							}
-
-							return transaction.deleteFrom('group_tag')
-							.innerJoin('tag', 'group_tag.tag_id', 'tag.id')
-							.where('group_tag.group_id', '=', request['params']['groupId'])
-							.where('tag.name', 'not in', tagNames)
-							.executeTakeFirstOrThrow()
-							.then(function (): Promise<Pick<Tag, 'id'>[]> {
-								return createTags(transaction, tagNames);
-							})
-							.then(function (tags: Pick<Tag, 'id'>[]): Promise<InsertResult[]> {
-								const groupTagInserts: Insertable<GroupTagTable>[] = [];
-		
-								for(let i: number = 0; i < tags['length']; i++) {
-									groupTagInserts.push({
-										group_id: request['params']['groupId'],
-										tag_id: tags[i]['id']
-									});
-								}
-		
-								return transaction.insertInto('group_tag')
-									.values(groupTagInserts)
-									.onConflict(function (builder: OnConflictBuilder<Database, 'group_tag'>): OnConflictDoNothingBuilder<Database, 'group_tag'> {
-										return builder.column('tag_id')
-											.doNothing();
-									})
-									.execute();
+						for(let i: number = 0; i < tags['length']; i++) {
+							tagIds.push(tags[i]['id']);
+							groupTagInserts.push({
+								group_id: request['params']['groupId'],
+								tag_id: tags[i]['id']
 							});
-						})
+						}
+
+						return Promise.all([
+							transaction.deleteFrom('group_tag')
+								.where('group_id', '=', request['params']['groupId'])
+								.where('tag_id', 'not in', tagIds)
+								.executeTakeFirstOrThrow(),
+							transaction.insertInto('group_tag')
+								.values(groupTagInserts)
+								.onConflict(function (builder: OnConflictBuilder<Database, 'group_tag'>): OnConflictDoNothingBuilder<Database, 'group_tag'> {
+									return builder.column('tag_id')
+										.doNothing();
+								})
+								.executeTakeFirstOrThrow()
+						]);
+					});
 				})
 				.then(function (): void {
 					reply.status(204)
