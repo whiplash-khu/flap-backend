@@ -1,8 +1,9 @@
-import { ChatUser } from "@library/type";
-import S, { JSONSchema} from 'fluent-json-schema';
-import commonSchema from "./common";
+import { ChatUser } from '@library/type';
+import { JSONSchema} from 'fluent-json-schema';
+import chatSchema from './chat';
+import userSchema from './user';
 
 export default {
-	chatId: commonSchema['id'],
-	userId: commonSchema['id'],
+	chatId: chatSchema['id'],
+	userId: userSchema['id'],
 } satisfies Record<keyof ChatUser, JSONSchema>;
