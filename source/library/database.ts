@@ -29,17 +29,15 @@ export function createUniqueToken(kysely: Kysely<Database>, table: 'user_lost_pa
 		});
 }
 
-export function isMediaValid(kysely: Kysely<Database>, id: number): Promise<boolean> {
+export function selectEmptyMedia(kysely: Kysely<Database>, id: number): Promise<{} | undefined> {
 	if(id === 0) {
-		return Promise.resolve(true);
+		return Promise.resolve({});
 	}
 
 	return kysely.selectFrom('media')
-		.select(sql<number>`1`.as('v'))
-		.executeTakeFirst()
-		.then(function (media?: {}): boolean {
-			return media !== undefined;
-		});
+		.select(emptySelection)
+		.where('id', '=', id)
+		.executeTakeFirst();
 }
 
 export function createTags(kysely: Kysely<Database>, names: Tag['name'][]): Promise<Pick<Tag, 'id'>[]> {

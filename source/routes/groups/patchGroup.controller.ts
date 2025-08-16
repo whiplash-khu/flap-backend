@@ -1,5 +1,5 @@
 import { TAG_REGULAR_EXPRESSION } from '@library/constant';
-import { createTags, isMediaValid, kysely } from '@library/database';
+import { createTags, kysely, selectEmptyMedia } from '@library/database';
 import { BadRequest, NotFound, Unauthorized } from '@library/httpError';
 import { Database, Group, GroupTagTable, Tag } from '@library/type';
 import { FastifyReply, FastifyRequest } from 'fastify';
@@ -25,7 +25,7 @@ export default function (request: FastifyRequest<{
 				.where('id', '=', request['params']['groupId'])
 				.where('deleted_at', 'is', null)
 				.executeTakeFirst()
-				.then(function (group?: Pick<Group, 'userId'> & Partial<Pick<Group, 'startAt'>>): Promise<boolean> {
+				.then(function (group?: Pick<Group, 'userId'> & Partial<Pick<Group, 'startAt'>>): Promise<{} | undefined> {
 					if(group === undefined) {
 						throw new NotFound('Prams["groupId"] must be valid');
 					}
@@ -38,10 +38,10 @@ export default function (request: FastifyRequest<{
 						throw new BadRequest('Group["startAt"] must be earlier than Body["endAt"]');
 					}
 
-					return isMediaValid(transaction, request['body']['mediaId'] || 0);
+					return selectEmptyMedia(transaction, request['body']['mediaId'] || 0);
 				})
-				.then(function (isMediaValid: boolean): Promise<UpdateResult> {
-					if(!isMediaValid) {
+				.then(function (media?: {}): Promise<UpdateResult> {
+					if(media === undefined) {
 						throw new BadRequest('Body["mediaId"] must be valid');
 					}
 

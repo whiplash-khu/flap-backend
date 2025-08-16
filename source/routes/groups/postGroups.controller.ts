@@ -1,5 +1,5 @@
 import { TAG_REGULAR_EXPRESSION } from '@library/constant';
-import { createTags, isMediaValid, kysely } from '@library/database';
+import { createTags, selectEmptyMedia, kysely } from '@library/database';
 import { BadRequest } from '@library/httpError';
 import { Database, Group, GroupQuestion, GroupQuestionTable, GroupTagTable, Tag } from '@library/type';
 import { FastifyReply, FastifyRequest } from 'fastify';
@@ -22,9 +22,9 @@ export default function (request: FastifyRequest<{
 
 			request['body']['mediaId'] ||= 0;
 
-			return isMediaValid(transaction, request['body']['mediaId'])
-				.then(function (isMediaValid: boolean): Promise<Pick<Group, 'id'>> {
-					if(!isMediaValid) {
+			return selectEmptyMedia(transaction, request['body']['mediaId'])
+				.then(function (media?: {}): Promise<Pick<Group, 'id'>> {
+					if(media === undefined) {
 						throw new BadRequest('Body["mediaId"] must be valid');
 					}
 
