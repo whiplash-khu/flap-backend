@@ -10,7 +10,7 @@ export default function (request: FastifyRequest, reply: FastifyReply): Promise<
 		.execute(function (transaction: Transaction<Database>): Promise<void> {
 			const groups: (Pick<Group, 'id' | 'name' | 'startAt' | 'createdAt'> & {
 				media: Pick<Media, 'hash' | 'type'>;
-				tags: string[];
+				tags: Tag['name'][];
 			})[] = [];
 
 			return transaction.selectFrom('group')
@@ -47,7 +47,8 @@ export default function (request: FastifyRequest, reply: FastifyReply): Promise<
 						.innerJoin('group_tag', 'tag.id', 'group_tag.tag_id')
 						.select('group_tag.group_id as groupId')
 						.where('group_tag.group_id', 'in', groupIds)
-						.orderBy(sql`array_position(array(${groupIds.join(',')}), groupId)`)
+						.orderBy(sql`array_position(array(${groupIds.join(',')}),groupId)`)
+						.limit(3)
 						.execute();
 				})
 				.then(function (tags: Pick<Tag & GroupTag, 'name' | 'groupId'>[]): void {
