@@ -1,6 +1,6 @@
 import S from 'fluent-json-schema';
 
-const commonSchema = {
+export default {
 	id: S.integer()
 		.minimum(1)
 		.maximum(2147483648),
@@ -15,5 +15,3 @@ const commonSchema = {
 	datetime: S.string()
 		.format('date-time'),
 } as const;
-
-export default commonSchema;

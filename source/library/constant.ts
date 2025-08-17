@@ -109,4 +109,6 @@ export const LOST_PASSWORD_TEMPLATE: string = `<body style="margin:100px auto;wi
 	</footer>
 </body>`;
 
+export const TAG_REGULAR_EXPRESSION: RegExp = /(?<=#)[a-zA-Z0-9ㄱ-ㅣ가-힣_]{1,16}/g;
+
 export const emptySelection: AliasedRawBuilder<number, '1'> = sql<number>`1`.as('1');

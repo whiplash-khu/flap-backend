@@ -3,7 +3,7 @@ import { SMTPChannel } from 'smtp-channel';
 
 const smtp: SMTPChannel = new SMTPChannel({
 	host: process['env']['EMAIL_HOST'],
-	port: Number(process['env']['EMAIL_PORT']),
+	port: Number.parseInt(process['env']['EMAIL_PORT'], 10),
 	// SSL/TLS instead of STARTTLS
 	secure: true
 });
