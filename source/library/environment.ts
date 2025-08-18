@@ -12,4 +12,4 @@ for(let i: number = 0; i < ENVIRONMENT_VARIABLE_NAMES['length']; i++) {
 
 process['env']['PORT'] ||= '80';
 process['env']['TZ'] = 'UTC';
-process['env']['JSON_WEB_TOKEN_SECRET'] = randomBytes(64).toString('hex');
+process['env']['JSON_WEB_TOKEN_SECRET'] ||= randomBytes(64).toString('hex');
