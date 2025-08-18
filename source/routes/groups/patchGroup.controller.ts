@@ -54,7 +54,7 @@ export default function (request: FastifyRequest<{
 							end_at: request['body']['endAt']
 						})
 						.where('id', '=', request['params']['groupId'])
-						.executeTakeFirst();
+						.executeTakeFirstOrThrow();
 				})
 				.then(function (): Promise<(DeleteResult | InsertResult)[]> | undefined {
 					if(request['body']['introduction'] === undefined) {
