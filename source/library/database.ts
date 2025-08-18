@@ -29,17 +29,6 @@ export function createUniqueToken(kysely: Kysely<Database>, table: 'user_lost_pa
 		});
 }
 
-export function selectEmptyMedia(kysely: Kysely<Database>, id: number): Promise<{} | undefined> {
-	if(id === 0) {
-		return Promise.resolve({});
-	}
-
-	return kysely.selectFrom('media')
-		.select(emptySelection)
-		.where('id', '=', id)
-		.executeTakeFirst();
-}
-
 export function createTags(kysely: Kysely<Database>, names: Tag['name'][]): Promise<Pick<Tag, 'id'>[]> {
 	const tagInserts: Insertable<TagTable>[] = [];
 
@@ -54,7 +43,9 @@ export function createTags(kysely: Kysely<Database>, names: Tag['name'][]): Prom
 		.onConflict(function (builder: OnConflictBuilder<Database, 'tag'>): OnConflictUpdateBuilder<Database, 'tag'> {
 			return builder.column('name')
 				// to retreive id
-				.doUpdateSet('name');
+				.doUpdateSet({
+					name: sql`excluded.name`
+				});
 		})
 		.returning('id')
 		.execute();
