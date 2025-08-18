@@ -12,9 +12,9 @@ export default function (request: FastifyRequest<{
 	let user: Pick<User, 'id' | 'password'>;
 
 	return kysely.selectFrom('user')
-		.select(['user.id', 'user.email', 'user.password', 'user.name', 'user.birth_at as birthAt', 'user.school'])
-		.where('user.email', '=', request['body']['email'])
-		.where('user.deleted_at', 'is', null)
+		.select(['id', 'password'])
+		.where('email', '=', request['body']['email'])
+		.where('deleted_at', 'is', null)
 		.executeTakeFirst()
 		.then(function (_user?: Pick<User, 'id' | 'password'>): Promise<string> {
 			if(_user === undefined) {
