@@ -21,40 +21,35 @@ export default function (request: FastifyRequest<{
 		.setIsolationLevel('serializable')
 		.execute(function (transaction: Transaction<Database>): Promise<void> {
 			const shouldUpdatePassword: boolean = typeof request['body']['password'] === 'string';
+			const shouldUpdateMediaId: boolean = typeof request['body']['mediaId'] === 'number';
 			let encryptedPassword: string | undefined;
 			let media: Pick<Media, 'hash' | 'type'> | undefined;
 
-			return transaction.selectFrom('user')
+			return (shouldUpdatePassword ? transaction.selectFrom('user')
 				.select('email')
 				.where('id', '=', request['params']['userId'])
-				.where('deleted_at', 'is', null)
 				.executeTakeFirst()
 				.then(function (user?: Pick<User, 'email'>): Promise<string | undefined> | undefined {
 					if(user === undefined) {
 						throw new NotFound('Params["userId"] must be valid');
 					}
 
-					if(shouldUpdatePassword) {
-						return;
-					}
-
 					return encryptPbkdf2(request['body']['password'] as string, user['email']);
-				})
+				}) : Promise.resolve() as Promise<undefined>)
 				.then(function (_encryptedPassword?: string): Promise<Pick<Media, 'hash' | 'type'> | undefined> | undefined {
 					encryptedPassword = _encryptedPassword;
 
-					if(request['body']['mediaId'] === undefined) {
+					if(shouldUpdateMediaId) {
 						return;
 					}
 
 					return kysely.selectFrom('media')
 						.select(['hash', 'type'])
-						.where('id', '=', request['body']['mediaId'])
+						.where('id', '=', request['body']['mediaId'] as number)
 						.executeTakeFirst();
-
 				})
 				.then(function (_media?: Pick<Media, 'hash' | 'type'>): Promise<UpdateResult> {
-					if(_media === undefined) {
+					if(shouldUpdateMediaId && _media === undefined) {
 						throw new BadRequest('Body["mediaId"] must be valid');
 					}
 
@@ -69,7 +64,7 @@ export default function (request: FastifyRequest<{
 							media_id: request['body']['mediaId']
 						})
 						.where('id', '=', request['params']['userId'])
-						.executeTakeFirst();
+						.executeTakeFirstOrThrow();
 				})
 				.then(function (): void {
 					reply.send({
