@@ -1,8 +1,9 @@
+import { emptySelection } from '@library/constant';
 import { kysely } from '@library/database';
 import { BadRequest } from '@library/httpError';
 import { Chat, ChatUserTable, Database, User } from '@library/type';
 import { FastifyRequest, FastifyReply } from 'fastify';
-import { Insertable, InsertResult, Transaction } from 'kysely';
+import { ExpressionBuilder, ExpressionWrapper, Insertable, InsertResult, Transaction } from 'kysely';
 
 export default function (request: FastifyRequest<{
 	Body: {
@@ -23,9 +24,26 @@ export default function (request: FastifyRequest<{
 				.executeTakeFirstOrThrow()
 				.then(function (user: {
 					count: number;
-				}): Promise<Pick<Chat, 'id'>> {
+				}): Promise<{} | undefined> {
 					if(user['count'] !== request['body']['userIds']['length']) {
 						throw new BadRequest('Body["userIds"] must be valid');
+					}
+
+					return transaction.selectFrom('chat_user')
+						.select(emptySelection)
+						.groupBy('chat_id')
+						.having(kysely.fn.countAll(), '=', request['body']['userIds']['length'])
+						.having(kysely.fn.count(function (expressionBuilder: ExpressionBuilder<Database, 'chat_user'>): ExpressionWrapper<Database, "chat_user", number | null> {
+							return expressionBuilder.case()
+								.when('user_id', 'in', request['body']['userIds'])
+								.then(1)
+								.end();
+						}), '=', 2)
+						.executeTakeFirst();
+				})
+				.then(function (chat?: {}): Promise<Pick<Chat, 'id'>> {
+					if(chat !== undefined) {
+						throw new BadRequest('Body["userIds"] must be unique combination among all chats');
 					}
 
 					return transaction.insertInto('chat')
@@ -52,9 +70,11 @@ export default function (request: FastifyRequest<{
 						.executeTakeFirstOrThrow();
 				})
 				.then(function (): void {
-					reply.send({ 
-						id: chatId
-					});
+					reply.status(201)
+						.header('location', '/chats/' + chatId)
+						.send({ 
+							id: chatId
+						});
 				});
 		});
 }

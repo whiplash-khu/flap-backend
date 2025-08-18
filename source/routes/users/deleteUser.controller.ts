@@ -19,20 +19,20 @@ export default function (request: FastifyRequest<{
 		.execute(function (transaction: Transaction<Database>): Promise<void> {
 			const now: Date = new Date();
 
-			return transaction.updateTable('group')
-				.set({
-					deleted_at: now
-				})
-				.where('user_id', '=', request['params']['userId'])
-				.execute()
-				.then(function (): Promise<UpdateResult> {
-					return transaction.updateTable('user')
-						.set({
-							deleted_at: now
-						})
-						.where('id', '=', request['params']['userId'])
-						.executeTakeFirstOrThrow();
-				})
+			return Promise.all([
+				transaction.updateTable('group')
+					.set({
+						deleted_at: now
+					})
+					.where('user_id', '=', request['params']['userId'])
+					.executeTakeFirstOrThrow(),
+				transaction.updateTable('user')
+					.set({
+						deleted_at: now
+					})
+					.where('id', '=', request['params']['userId'])
+					.executeTakeFirstOrThrow()
+			])
 				.then(function (): void {
 					reply.status(204)
 						.send();

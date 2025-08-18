@@ -9,7 +9,7 @@ export default function (request: FastifyRequest<{
 	Params: {
 		groupId: Group['id'];
 	};
-	Body: Pick<Group, | 'name' | 'introduction' | 'description' | 'endAt'> & Partial<Pick<Group, 'mediaId'>>;
+	Body: Partial<Pick<Group, | 'name' | 'introduction' | 'description' | 'endAt' | 'mediaId'>>;
 }>, reply: FastifyReply): Promise<void> {
 	return kysely.transaction()
 		.setAccessMode('read write')
@@ -34,7 +34,7 @@ export default function (request: FastifyRequest<{
 						throw new Unauthorized('Group["userId"] must be yourself');
 					}
 
-					if(shouldUpdateEndAt && group['startAt'] as Date > request['body']['endAt']) {
+					if(shouldUpdateEndAt && (group['startAt'] as Date) > (request['body']['endAt'] as Date)) {
 						throw new BadRequest('Group["startAt"] must be earlier than Body["endAt"]');
 					}
 
@@ -54,7 +54,7 @@ export default function (request: FastifyRequest<{
 							end_at: request['body']['endAt']
 						})
 						.where('id', '=', request['params']['groupId'])
-						.executeTakeFirst();
+						.executeTakeFirstOrThrow();
 				})
 				.then(function (): Promise<(DeleteResult | InsertResult)[]> | undefined {
 					if(request['body']['introduction'] === undefined) {

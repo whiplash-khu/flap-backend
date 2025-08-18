@@ -64,21 +64,26 @@ export default function (request: FastifyRequest<{
 						});
 					}
 
-					return Promise.all([transaction.insertInto('group_tag')
-						.values(groupTagInserts)
-						.execute(), transaction.insertInto('group_question')
-						.values(groupQuestionInserts)
-						.execute(), transaction.insertInto('group_user')
-						.values({
-							group_id: groupId,
-							user_id: request['userId']
-						})
-						.executeTakeFirstOrThrow()]);
+					return Promise.all([
+						transaction.insertInto('group_tag')
+							.values(groupTagInserts)
+							.execute(), transaction.insertInto('group_question')
+							.values(groupQuestionInserts)
+							.execute(),
+						transaction.insertInto('group_user')
+							.values({
+								group_id: groupId,
+								user_id: request['userId']
+							})
+							.executeTakeFirstOrThrow()
+					]);
 				})
 				.then(function (): void {
-					reply.send({
-						id: groupId
-					});
+					reply.status(201)
+						.header('location', '/groups/' + groupId)
+						.send({
+							id: groupId
+						});
 				});
 		});
 }

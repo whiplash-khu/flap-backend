@@ -1,9 +1,9 @@
 import { emptySelection } from '@library/constant';
 import { kysely } from '@library/database';
-import { NotFound } from '@library/httpError';
-import { Chat, ChatMessage, Database, Media, Pagenation, User } from '@library/type';
+import { NotFound, Unauthorized } from '@library/httpError';
+import { Chat, ChatMessage, ChatUser, Database, Media, Pagenation, User } from '@library/type';
 import { FastifyRequest, FastifyReply } from 'fastify';
-import { SelectQueryBuilder, Transaction } from 'kysely';
+import { JoinBuilder, Nullable, SelectQueryBuilder, Transaction } from 'kysely';
 
 export default function(request: FastifyRequest<{
 	Params: {
@@ -15,15 +15,22 @@ export default function(request: FastifyRequest<{
 		.setAccessMode('read only')
 		.setIsolationLevel('repeatable read')
 		.execute(function (transaction: Transaction<Database>): Promise<void> {
-			return transaction.selectFrom('chat_user')
-				.select(emptySelection)
-				.where('chat_id', '=', request['params']['chatId'])
-				.where('user_id', '=', request['userId'])
-				.limit(1)
+			return transaction.selectFrom('chat')
+				.select('chat.id')
+				.leftJoin('chat_user', function (joinBuilder: JoinBuilder<Database, 'chat' | 'chat_user'>): JoinBuilder<Database, 'chat' | 'chat_user'> {
+					return joinBuilder.onRef('chat.id', '=', 'chat_user.chat_id')
+						.on('chat_user.user_id', '=', request['params']['chatId']);
+				})
+				.select('chat_user.user_id as userId')
+				.where('chat.id', '=', request['params']['chatId'])
 				.executeTakeFirst()
-				.then(function (chatUser?: {}): Promise<Pick<ChatMessage & User & Media, 'id' | 'userId' | 'content' | 'createdAt' | 'name' | 'mediaId' | 'hash' | 'type'>[]> {
-					if(chatUser === undefined) {
-						throw new NotFound('Params["chatId"] must be valid')
+				.then(function (chatWithUser?: Nullable<Pick<ChatUser, 'userId'>>): Promise<Pick<ChatMessage & User & Media, 'id' | 'userId' | 'content' | 'createdAt' | 'name' | 'mediaId' | 'hash' | 'type'>[]> {
+					if(chatWithUser === undefined) {
+						throw new NotFound('Params["chatId"] must be valid');
+					}
+
+					if(typeof chatWithUser['userId'] !== 'number') {
+						throw new Unauthorized('Params["userId"] must in chat');
 					}
 
 					return transaction.selectFrom('chat_message')

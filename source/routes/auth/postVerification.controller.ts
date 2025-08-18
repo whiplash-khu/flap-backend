@@ -4,7 +4,7 @@ import { BadRequest } from '@library/httpError';
 import { sendMail } from '@library/mailer';
 import { Database, Verification } from '@library/type';
 import { FastifyReply, FastifyRequest } from 'fastify';
-import { InsertResult, OnConflictBuilder, OnConflictUpdateBuilder, sql, Transaction } from 'kysely';
+import { InsertResult, OnConflictBuilder, OnConflictUpdateBuilder, Transaction } from 'kysely';
 
 export default function (request: FastifyRequest<{
 	Body: Pick<Verification, 'email'>;
@@ -31,18 +31,18 @@ export default function (request: FastifyRequest<{
 					token = _token;
 
 					return transaction.insertInto('verification')
-					.values({
-						email: request['body']['email'],
-						token: _token
-					})
-					// resend mail
-					.onConflict(function (builder: OnConflictBuilder<Database, 'verification'>): OnConflictUpdateBuilder<Database, 'verification'> {
-						return builder.column('email')
-							.doUpdateSet({
-								token: _token
-							});
-					})
-					.executeTakeFirstOrThrow();
+						.values({
+							email: request['body']['email'],
+							token: _token
+						})
+						// resend mail
+						.onConflict(function (builder: OnConflictBuilder<Database, 'verification'>): OnConflictUpdateBuilder<Database, 'verification'> {
+							return builder.column('email')
+								.doUpdateSet({
+									token: _token
+								});
+						})
+						.executeTakeFirstOrThrow();
 				})
 				.then(function (): Promise<boolean> {
 					return sendMail(request['body']['email'], '[Flap] 회원가입 메일 인증', VERIFICATION_TEMPLATE.replace(/{token}/g, token));

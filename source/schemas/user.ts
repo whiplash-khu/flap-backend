@@ -16,4 +16,4 @@ export default {
 		.maxLength(24),
 	birthAt: commonSchema['date'],
 	mediaId: mediaSchema['id']
-} satisfies Record<keyof Omit<User, 'salt' | 'createdAt' | 'deletedAt'>, JSONSchema>;
+} satisfies Record<keyof Omit<User, 'createdAt' | 'deletedAt'>, JSONSchema>;

@@ -41,7 +41,9 @@ export default function (request: FastifyRequest<{
 						.executeTakeFirstOrThrow();
 				})
 				.then(function (user: Pick<User, 'id'>): void {
-					reply.send(user);
+					reply.status(201)
+						.header('location', '/users/' + user['id'])
+						.send(user);
 				});
 		});
 }
