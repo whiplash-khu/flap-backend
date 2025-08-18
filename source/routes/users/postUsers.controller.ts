@@ -2,8 +2,9 @@ import { encryptPbkdf2 } from '@library/crypto';
 import { kysely } from '@library/database';
 import { BadRequest } from '@library/httpError';
 import { Database, User, Verification } from '@library/type';
+import getEpoch from '@library/utility';
 import { FastifyReply, FastifyRequest } from 'fastify';
-import { Transaction } from 'kysely';
+import { sql, Transaction } from 'kysely';
 
 export default function (request: FastifyRequest<{
 	Body: Pick<User & Verification, 'password' | 'name' | 'birthAt' | 'school' | 'token'>;
@@ -16,6 +17,7 @@ export default function (request: FastifyRequest<{
 
 			return transaction.deleteFrom('verification')
 				.where('token', '=', request['body']['token'])
+				.where('verification.created_at', '>', sql<Date>`to_timestamp(${getEpoch() - 43200})`)
 				.returning('email')
 				.executeTakeFirst()
 				.then(function (verification?: Pick<Verification, 'email'>): Promise<string> {
