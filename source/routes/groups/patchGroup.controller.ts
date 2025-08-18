@@ -1,7 +1,7 @@
 import { TAG_REGULAR_EXPRESSION } from '@library/constant';
-import { createTags, kysely, selectEmptyMedia } from '@library/database';
+import { createTags, kysely } from '@library/database';
 import { BadRequest, NotFound, Unauthorized } from '@library/httpError';
-import { Database, Group, GroupTagTable, Tag } from '@library/type';
+import { Database, Group, GroupTagTable, Media, Tag } from '@library/type';
 import { FastifyReply, FastifyRequest } from 'fastify';
 import { DeleteResult, Insertable, InsertResult, OnConflictBuilder, OnConflictDoNothingBuilder, SelectQueryBuilder, Transaction, UpdateResult } from 'kysely';
 
@@ -15,7 +15,13 @@ export default function (request: FastifyRequest<{
 		.setAccessMode('read write')
 		.setIsolationLevel('serializable')
 		.execute(function (transaction: Transaction<Database>): Promise<void> {
-			const shouldUpdateEndAt: boolean = request['body']['endAt'] !== undefined;
+			const shouldUpdateEndAt: boolean = typeof request['body']['endAt'] === 'string';
+			const shouldUpdateMediaId: boolean = typeof request['body']['mediaId'] === 'number';
+			let media: Omit<Media, 'createdAt'> | undefined;
+			
+			if(shouldUpdateEndAt) {
+				request['body']['endAt'] = new Date(request['body']['endAt'] as Date);
+			}
 
 			return transaction.selectFrom('group')
 				.select('user_id as userId')
@@ -25,7 +31,7 @@ export default function (request: FastifyRequest<{
 				.where('id', '=', request['params']['groupId'])
 				.where('deleted_at', 'is', null)
 				.executeTakeFirst()
-				.then(function (group?: Pick<Group, 'userId'> & Partial<Pick<Group, 'startAt'>>): Promise<{} | undefined> {
+				.then(function (group?: Pick<Group, 'userId'> & Partial<Pick<Group, 'startAt'>>): Promise<Omit<Media, 'createdAt'> | undefined> | undefined {
 					if(group === undefined) {
 						throw new NotFound('Prams["groupId"] must be valid');
 					}
@@ -34,16 +40,25 @@ export default function (request: FastifyRequest<{
 						throw new Unauthorized('Group["userId"] must be yourself');
 					}
 
-					if(shouldUpdateEndAt && (group['startAt'] as Date) > (request['body']['endAt'] as Date)) {
+					if(shouldUpdateEndAt && (group['startAt'] as Date) >= (request['body']['endAt'] as Date)) {
 						throw new BadRequest('Group["startAt"] must be earlier than Body["endAt"]');
 					}
 
-					return selectEmptyMedia(transaction, request['body']['mediaId'] || 0);
+					if(!shouldUpdateMediaId) {
+						return;
+					}
+
+					return transaction.selectFrom('media')
+						.select(['id', 'hash', 'type'])
+						.where('id', '=', request['body']['mediaId'] as number)
+						.executeTakeFirst();
 				})
-				.then(function (media?: {}): Promise<UpdateResult> {
-					if(media === undefined) {
+				.then(function (_media?: Omit<Media, 'createdAt'>): Promise<UpdateResult> {
+					if(shouldUpdateMediaId && _media === undefined) {
 						throw new BadRequest('Body["mediaId"] must be valid');
 					}
+
+					media = _media;
 
 					return transaction.updateTable('group')
 						.set({
@@ -61,7 +76,7 @@ export default function (request: FastifyRequest<{
 						return;
 					}
 
-					return createTags(transaction, TAG_REGULAR_EXPRESSION.exec(request['body']['introduction']) || [])
+					return createTags(transaction, request['body']['introduction'].match(TAG_REGULAR_EXPRESSION) || [])
 					.then(function (tags: Pick<Tag, 'id'>[]): Promise<(DeleteResult | InsertResult)[]> {
 						const tagIds: Tag['id'][] = [];
 						const groupTagInserts: Insertable<GroupTagTable>[] = [];
@@ -90,8 +105,13 @@ export default function (request: FastifyRequest<{
 					});
 				})
 				.then(function (): void {
-					reply.status(204)
-						.send();
+					reply.send({
+						name: request['body']['name'],
+						introduction: request['body']['introduction'],
+						description: request['body']['description'],
+						endAt: request['body']['endAt'],
+						media: media
+					});
 				});
 		});
 }
