@@ -10,9 +10,9 @@ export default function authHandler(request: FastifyRequest, reply: FastifyReply
 	}
 
 	const jsonWebToken: JsonWebToken<{
-		userId: number;
+		uid: number;
 	}> = new JsonWebToken<{
-		userId: number;
+		uid: number;
 	}>(request['headers']['authorization'].slice(7), process['env']['JSON_WEB_TOKEN_SECRET']);
 
 	if(!jsonWebToken.isValid()) {
@@ -21,7 +21,7 @@ export default function authHandler(request: FastifyRequest, reply: FastifyReply
 		return;
 	}
 
-	request['userId'] = jsonWebToken['payload']['userId'];
+	request['userId'] = jsonWebToken['payload']['uid'];
 
 	done();
 }
