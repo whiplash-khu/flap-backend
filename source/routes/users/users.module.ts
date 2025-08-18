@@ -37,6 +37,7 @@ export default new Module('users', [
 			params: S.object()
 				.prop('userId', userSchema['id'].required()),
 			body: S.object()
+				.prop('previousPassword', userSchema['password'])
 				.prop('password', userSchema['password'])
 				.prop('name', userSchema['name'])
 				.prop('birthAt', userSchema['birthAt'])
@@ -44,7 +45,7 @@ export default new Module('users', [
 				.prop('mediaId', userSchema['mediaId'])
 				.anyOf([
 					S.object()
-						.required(['password']),
+						.required(['previousPassword', 'password']),
 					S.object()
 						.required(['name']),
 					S.object()
