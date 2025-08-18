@@ -1,7 +1,7 @@
 import { kysely } from '@library/database';
 import { Database, Group, GroupTag, Media, Pagenation, Tag } from '@library/type';
 import { FastifyReply, FastifyRequest } from 'fastify';
-import { SelectQueryBuilder, sql, Transaction } from 'kysely';
+import { QueryCreator, SelectQueryBuilder, sql, SqlBool, Transaction } from 'kysely';
 
 export default function (request: FastifyRequest<{
 	Querystring: Pagenation;
@@ -26,35 +26,43 @@ export default function (request: FastifyRequest<{
 				.orderBy('group.id', 'desc')
 				.limit(request['query']['size'])
 				.execute()
-				.then(function (groupAndMedias: Pick<Group & Media, 'id' | 'name' | 'startAt' | 'createdAt' | 'hash' | 'type'>[]): Promise<Pick<Tag & GroupTag, 'name' | 'groupId'>[]> | [] {
-					if(groupAndMedias['length'] === 0) {
+				.then(function (groupWithMedias: Pick<Group & Media, 'id' | 'name' | 'startAt' | 'createdAt' | 'hash' | 'type'>[]): Promise<Pick<Tag & GroupTag, 'name' | 'groupId'>[]> | [] {
+					if(groupWithMedias['length'] === 0) {
 						return [];
 					}
 
 					const groupIds: number[] = [];
 
-					for(let i: number = 0; i < groupAndMedias['length']; i++) {
-						groupIds.push(groupAndMedias[i]['id']);
+					for(let i: number = 0; i < groupWithMedias['length']; i++) {
+						groupIds.push(groupWithMedias[i]['id']);
 						groups.push({
-							id: groupAndMedias[i]['id'],
-							name: groupAndMedias[i]['name'],
-							startAt: groupAndMedias[i]['startAt'],
-							createdAt: groupAndMedias[i]['createdAt'],
+							id: groupWithMedias[i]['id'],
+							name: groupWithMedias[i]['name'],
+							startAt: groupWithMedias[i]['startAt'],
+							createdAt: groupWithMedias[i]['createdAt'],
 							media: {
-								hash: groupAndMedias[i]['hash'],
-								type: groupAndMedias[i]['type']
+								hash: groupWithMedias[i]['hash'],
+								type: groupWithMedias[i]['type']
 							},
 							tags: []
 						});
 					}
 
-					return transaction.selectFrom('tag')
-						.select('tag.name')
-						.innerJoin('group_tag', 'tag.id', 'group_tag.tag_id')
-						.select('group_tag.group_id as groupId')
-						.where('group_tag.group_id', 'in', groupIds)
-						.orderBy(sql`array_position(array(${groupIds.join(',')}),groupId)`)
-						.limit(3)
+					return transaction.with('_tag', function (queryCreator: QueryCreator<Database>): SelectQueryBuilder<Database, "tag" | "group_tag", Pick<Tag & GroupTag, 'name' | 'groupId'> & {
+						rowNumber: number;
+					}> {
+						return queryCreator.selectFrom('tag')
+							.select('tag.name')
+							.innerJoin('group_tag', 'tag.id', 'group_tag.tag_id')
+							.select(sql<number>`row_number() over (partition by group_tag.group_id)`.as('rowNumber'))
+							.select('group_tag.group_id as groupId')
+							.where('group_tag.group_id', 'in', groupIds)
+							.orderBy(sql`array_position(array[${sql.raw(groupIds.join(','))}],group_id)`);
+						})
+						.selectFrom('_tag')
+						.select(['_tag.name', '_tag.groupId'])
+						// literal condition
+						.where(sql.raw<SqlBool>('"_tag"."rowNumber" < 4'))
 						.execute();
 				})
 				.then(function (tags: Pick<Tag & GroupTag, 'name' | 'groupId'>[]): void {
