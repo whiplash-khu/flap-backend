@@ -7,26 +7,33 @@ import { ExpressionBuilder, ExpressionWrapper, Insertable, InsertResult, Transac
 
 export default function (request: FastifyRequest<{
 	Body: {
-		name: Chat['name'];
 		userIds: User['id'][];
 	};
 }>, reply: FastifyReply): Promise<void> {
+	if(!request['body']['userIds'].includes(request['userId'])) {
+		throw new BadRequest('Body["userIds"] must include yourself');
+	}
+
 	return kysely.transaction()
 		.setAccessMode('read write')
 		.setIsolationLevel('serializable')
 		.execute(function (transaction: Transaction<Database>): Promise<void> {
-			let chatId: Chat['id'];
+			const chat: Omit<Chat, 'createdAt'> = {} as Omit<Chat, 'createdAt'>;
 
 			return transaction.selectFrom('user')
-				.select(kysely.fn.countAll<number>().as('count'))
+				.select('name')
 				.where('id', 'in', request['body']['userIds'])
 				.where('deleted_at', 'is', null)
-				.executeTakeFirstOrThrow()
-				.then(function (user: {
-					count: number;
-				}): Promise<{} | undefined> {
-					if(user['count'] !== request['body']['userIds']['length']) {
+				.execute()
+				.then(function (users: Pick<User, 'name'>[]): Promise<{} | undefined> {
+					if(users['length'] !== request['body']['userIds']['length']) {
 						throw new BadRequest('Body["userIds"] must be valid');
+					}
+
+					chat['name'] = users[0]['name'];
+
+					for(let i: number = 1; i < users['length']; i++) {
+						chat['name'] += ', ' + users[i]['name'];
 					}
 
 					return transaction.selectFrom('chat_user')
@@ -41,26 +48,26 @@ export default function (request: FastifyRequest<{
 						}), '=', 2)
 						.executeTakeFirst();
 				})
-				.then(function (chat?: {}): Promise<Pick<Chat, 'id'>> {
-					if(chat !== undefined) {
+				.then(function (_chat?: {}): Promise<Pick<Chat, 'id'>> {
+					if(_chat !== undefined) {
 						throw new BadRequest('Body["userIds"] must be unique combination among all chats');
 					}
 
 					return transaction.insertInto('chat')
 						.values({ 
-							name: request['body']['name'] 
+							name: chat['name']
 						})
 						.returning('id')
 						.executeTakeFirstOrThrow();
 				})
-				.then(function (chat: Pick<Chat, 'id'>): Promise<InsertResult> {
+				.then(function (_chat: Pick<Chat, 'id'>): Promise<InsertResult> {
 					const chatUserInserts: Insertable<ChatUserTable>[] = [];
 
-					chatId = chat['id'];
+					chat['id'] = _chat['id'];
 
 					for(let i: number = 0; i < request['body']['userIds']['length']; i++) {
 						chatUserInserts.push({
-							chat_id: chatId,
+							chat_id: chat['id'],
 							user_id: request['body']['userIds'][i]
 						});
 					}
@@ -71,9 +78,9 @@ export default function (request: FastifyRequest<{
 				})
 				.then(function (): void {
 					reply.status(201)
-						.header('location', '/chats/' + chatId)
+						.header('location', '/chats/' + chat['id'])
 						.send({ 
-							id: chatId
+							id: chat['id']
 						});
 				});
 		});

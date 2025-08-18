@@ -14,7 +14,6 @@ export default new Module('chats', [
 		handler: postChatsController,
 		schema: {
 			body: S.object()
-				.prop('name', chatSchema['name'].required())
 				.prop('userIds', S.array()
 					.items(chatUserSchema['userId'])
 					.minItems(2)
