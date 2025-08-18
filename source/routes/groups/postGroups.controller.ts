@@ -76,9 +76,11 @@ export default function (request: FastifyRequest<{
 						.executeTakeFirstOrThrow()]);
 				})
 				.then(function (): void {
-					reply.send({
-						id: groupId
-					});
+					reply.status(201)
+						.header('location', '/groups/' + groupId)
+						.send({
+							id: groupId
+						});
 				});
 		});
 }

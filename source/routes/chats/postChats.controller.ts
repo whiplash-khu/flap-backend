@@ -52,9 +52,11 @@ export default function (request: FastifyRequest<{
 						.executeTakeFirstOrThrow();
 				})
 				.then(function (): void {
-					reply.send({ 
-						id: chatId
-					});
+					reply.status(201)
+						.header('location', '/chats/' + chatId)
+						.send({ 
+							id: chatId
+						});
 				});
 		});
 }
