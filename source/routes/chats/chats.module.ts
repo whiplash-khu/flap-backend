@@ -4,6 +4,7 @@ import postChatsController from './postChats.controller';
 import getChatsController from './getChats.controller';
 import chatSchema from '@schemas/chat';
 import chatUserSchema from '@schemas/chatUser';
+import pagenationSchema from '@schemas/pagenation';
 import chatMessagesModule from './messages/chatMessages.module';
 
 export default new Module('chats', [
@@ -24,5 +25,14 @@ export default new Module('chats', [
 		method: 'GET',
 		url: '',
 		handler: getChatsController,
+		schema: {
+			querystring: S.object()
+				.prop('index', pagenationSchema['index'])
+				.prop('size', pagenationSchema['size'])
+				.prop('userIds', S.array()
+					.items(chatUserSchema['userId'])
+					.minItems(2)
+					.uniqueItems(true))
+		}
 	}
 ], [chatMessagesModule]);
