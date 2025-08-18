@@ -5,6 +5,9 @@ import groupSchema from '@schemas/group';
 import groupQuestionSchema from '@schemas/groupQuestion';
 import pagenationSchema from '@schemas/pagenation'
 import getGroupsController from './getGroups.controller';
+import getGroupController from './getGroup.controller';
+import patchGroupController from './patchGroup.controller';
+import deleteGroupController from './deleteGroup.controller';
 
 export default new Module('groups', [
 	{
@@ -34,6 +37,51 @@ export default new Module('groups', [
 			querystring: S.object()
 				.prop('index', pagenationSchema['index'])
 				.prop('size', pagenationSchema['size'])
+		}
+	},
+	{
+		method: 'GET',
+		url: ':groupId',
+		handler: getGroupController,
+		schema: {
+			params: S.object()
+				.prop('groupId', groupSchema['id'].required())
+		}
+	},
+	{
+		method: 'PATCH',
+		url: ':groupId',
+		handler: patchGroupController,
+		schema: {
+			params: S.object()
+				.prop('groupId', groupSchema['id'].required()),
+			body: S.object()
+				.prop('name', groupSchema['name'])
+				.prop('introduction', groupSchema['introduction'])
+				.prop('description', groupSchema['description'])
+				.prop('endAt', groupSchema['endAt'])
+				.prop('mediaId', groupSchema['mediaId'])
+				.anyOf([
+					S.object()
+						.required(['name']),
+					S.object()
+						.required(['introduction']),
+					S.object()
+						.required(['description']),
+					S.object()
+						.required(['endAt']),
+					S.object()
+						.required(['mediaId']),
+				])
+		}
+	},
+	{
+		method: 'DELETE',
+		url: ':groupId',
+		handler: deleteGroupController,
+		schema: {
+			params: S.object()
+				.prop('groupId', groupSchema['id'].required())
 		}
 	}
 ]);
