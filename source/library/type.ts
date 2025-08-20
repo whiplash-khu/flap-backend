@@ -78,6 +78,7 @@ export interface GroupTable {
 }
 
 export interface GroupUserTable {
+	id: GeneratedAlways<number>;
 	group_id: Unupdateable<number>;
 	user_id: Unupdateable<number>;
 }
