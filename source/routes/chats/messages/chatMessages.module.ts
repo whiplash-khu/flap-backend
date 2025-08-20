@@ -5,10 +5,10 @@ import getChatMessagesController from './getChatMessages.controller';
 import chatMessageSchema from '@schemas/chatMessage';
 import pagenationSchema from '@schemas/pagenation';
 
-export default new Module('messages', [
+export default new Module(':chatId/messages', [
 	{
 		method: 'POST',
-		url: ':chatId/messages',
+		url: '',
 		handler: postChatMessagesController,
 		schema: {
 			params: S.object()
@@ -18,7 +18,7 @@ export default new Module('messages', [
 		}
 	}, {
 		method: 'GET',
-		url: ':chatId/messages',
+		url: '',
 		handler: getChatMessagesController,
 		schema: {
 			params: S.object()
