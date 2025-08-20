@@ -49,7 +49,7 @@ export interface MediaTable {
 	id: GeneratedAlways<number>;
 	hash: Unupdateable<string>;
 	type: Unupdateable<string>;
-	created_at: GeneratedAlways<Date>;
+	created_at: Unupdateable<Date>;
 }
 
 export interface UserTable {
