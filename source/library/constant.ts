@@ -114,9 +114,6 @@ export const LOST_PASSWORD_TEMPLATE: string = `<body style="margin:100px auto;wi
 
 export const TAG_REGULAR_EXPRESSION: RegExp = /(?<=#)[a-zA-Z0-9ㄱ-ㅣ가-힣_]{1,16}/g;
 
-// @ts-expect-error
-export const EMPTY_SELECTION: AliasedRawBuilder<number, '1'> = sql<number>`1`;
-
 export const SUPPORTED_MIME_TYPES: Set<string> = new Set<string>([
 	'image/jpeg',
 	'image/png',

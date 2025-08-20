@@ -2,7 +2,6 @@ import { Insertable, Kysely, OnConflictBuilder, OnConflictUpdateBuilder, Postgre
 import { Database, Tag, TagTable } from './type';
 import { Pool } from 'pg';
 import { randomBytes } from 'crypto';
-import { EMPTY_SELECTION } from './constant';
 import { S3Client } from '@aws-sdk/client-s3';
 
 export const kysely: Kysely<Database> = new Kysely<Database>({
@@ -28,7 +27,6 @@ export function createUniqueToken(kysely: Kysely<Database>, table: 'user_lost_pa
 	const token: string = randomBytes(32).toString('hex');
 
 	return kysely.selectFrom(table)
-		.select(EMPTY_SELECTION)
 		.where('token', '=', token)
 		.limit(1)
 		.executeTakeFirst()
