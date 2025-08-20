@@ -3,7 +3,7 @@ import { kysely, s3 } from '@library/database';
 import { Database, Media } from '@library/type';
 import getEpoch from '@library/utility';
 import { FastifyReply, FastifyRequest } from 'fastify';
-import { sql, Transaction } from 'kysely';
+import { OnConflictBuilder, OnConflictUpdateBuilder, sql, Transaction } from 'kysely';
 
 export default function (request: FastifyRequest, reply: FastifyReply): Promise<void> {
 	return kysely.transaction()
@@ -19,16 +19,20 @@ export default function (request: FastifyRequest, reply: FastifyReply): Promise<
 					type: request['file']['mimeType'],
 					created_at: sql`to_timestamp(${now})`
 				})
+				.onConflict(function (builder: OnConflictBuilder<Database, 'media'>): OnConflictUpdateBuilder<Database, 'media'> {
+					return builder.column('hash')
+						.doUpdateSet({
+							hash: sql`excluded.hash`
+						});
+				})
 				.returning(['id', 'created_at as createdAt'])
 				.executeTakeFirstOrThrow()
 				.then(function (media: Pick<Media, 'id' | 'createdAt'>): Promise<PutObjectCommandOutput> | undefined {
-					if(now !== getEpoch(media['createdAt'])) {
-						console.log('dupe');
+					mediaId = media['id'];
 
+					if(now !== getEpoch(media['createdAt'])) {
 						return;
 					}
-
-					mediaId = media['id'];
 
 					return s3.send(new PutObjectCommand({
 						Bucket: process['env']['STORAGE_BUCKET_NAME'],
