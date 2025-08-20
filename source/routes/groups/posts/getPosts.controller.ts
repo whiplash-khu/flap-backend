@@ -56,12 +56,16 @@ export default function (request: FastifyRequest<{
                         .limit(request['query']['size'])
                         .execute();
                 })
-                .then(function (_groupPosts: Pick<Post & User & Media, 'id' | 'content' | 'createdAt' | 'isNotice' | 'userId' | 'name' | 'mediaId' | 'hash' | 'type'>[]): void {
+                .then(function (_groupPosts: Pick<Post & User & Media, 'id' | 'content' | 'createdAt' | 'isNotice' | 'userId' | 'name' | 'mediaId' | 'hash' | 'type'>[]): Promise<void> {
                     const groupPosts: (Pick<Post, 'id' | 'content' | 'createdAt' | 'isNotice'> & {
                         user: Pick<User, 'id' | 'name'> & {
 							media: Pick<Media, 'id' | 'hash' | 'type'>;
 						};
+                        reactions: Record<string, number>;
                     })[] = [];
+
+                    const postIds: number[] = [];
+                    const postId = new Map<number, number>();
 
                     for (let i = 0; i < _groupPosts.length; i++) {
                         groupPosts.push({
@@ -69,6 +73,7 @@ export default function (request: FastifyRequest<{
                             content: _groupPosts[i]['content'],
                             createdAt: _groupPosts[i]['createdAt'],
                             isNotice: _groupPosts[i]['isNotice'],
+                            reactions: {},
                             user: {
                                 id: _groupPosts[i]['userId'],
                                 name: _groupPosts[i]['name'],
@@ -79,8 +84,24 @@ export default function (request: FastifyRequest<{
 								}
                             },
                         });
+                        postIds.push(_groupPosts[i]['id']);
+                        postId.set(_groupPosts[i]['id'], i);
                     }
-                    reply.send(groupPosts);
+                    return transaction.selectFrom('post_reaction')
+                        .select(['post_id as postId', 'emoji'])
+                        .select(kysely.fn.countAll<number>().as('count'))
+                        .where('post_id', 'in', postIds)
+                        .groupBy(['post_id', 'emoji'])
+                        .execute()
+                        .then(function (emojis: { postId: number; emoji: string; count: number }[]): void {
+                            for (let i = 0; i < emojis.length; i++) {
+                                const _postId = postId.get(emojis[i]['postId']);
+                                if (typeof _postId === 'number') {
+                                    groupPosts[_postId]['reactions'][emojis[i]['emoji']] = emojis[i]['count'];
+                                }
+                            }
+                            reply.send(groupPosts);
+                        });
                 });
         });
 }
