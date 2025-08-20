@@ -7,6 +7,7 @@ import authModule from './auth/auth.module';
 import usersModule from './users/users.module';
 import chatsModule from './chats/chats.module';
 import groupsModule from './groups/groups.module';
+import mediasModule from './medias/medias.module';
 
 export default new Module('/', [
 	{
@@ -32,4 +33,4 @@ export default new Module('/', [
 		handler: getRobotsTxtController,
 		excludePreHandler: true
 	}
-], [authModule, dotWellKnownModule, chatsModule, groupsModule, usersModule]);
+], [authModule, dotWellKnownModule, chatsModule, groupsModule, usersModule, mediasModule]);

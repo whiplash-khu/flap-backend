@@ -3,6 +3,7 @@ import { Database, Tag, TagTable } from './type';
 import { Pool } from 'pg';
 import { randomBytes } from 'crypto';
 import { EMPTY_SELECTION } from './constant';
+import { S3Client } from '@aws-sdk/client-s3';
 
 export const kysely: Kysely<Database> = new Kysely<Database>({
 	dialect: new PostgresDialect({
@@ -10,6 +11,17 @@ export const kysely: Kysely<Database> = new Kysely<Database>({
 			connectionString: process['env']['DATABASE_URL']
 		})
 	})
+});
+
+export const s3: S3Client = new S3Client({
+	region: process['env']['STORAGE_REGION'],
+	credentials: {
+		accessKeyId: process['env']['STORAGE_ACCESS_KEY'],
+		secretAccessKey: process['env']['STORAGE_SECRET_KEY'],
+	},
+	// TODO: Remove on production
+	forcePathStyle: true,
+	endpoint: 'https://' + process['env']['STORAGE_ENDPOINT']
 });
 
 export function createUniqueToken(kysely: Kysely<Database>, table: 'user_lost_password' | 'verification'): Promise<string> {
