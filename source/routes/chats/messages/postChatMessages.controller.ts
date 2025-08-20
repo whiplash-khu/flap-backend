@@ -15,7 +15,6 @@ export default function (request: FastifyRequest<{
 		.setIsolationLevel('serializable')
 		.execute(function (transaction: Transaction<Database>): Promise<void> {
 			return transaction.selectFrom('chat')
-				.select('chat.id')
 				.leftJoin('chat_user', function (joinBuilder: JoinBuilder<Database, 'chat' | 'chat_user'>): JoinBuilder<Database, 'chat' | 'chat_user'> {
 					return joinBuilder.onRef('chat.id', '=', 'chat_user.chat_id')
 						.on('chat_user.user_id', '=', request['userId']);
@@ -28,8 +27,8 @@ export default function (request: FastifyRequest<{
 						throw new NotFound('Params["chatId"] must be valid');
 					}
 
-					if(typeof chatWithUser['userId'] !== 'number') {
-						throw new Unauthorized('Params["userId"] must in chat');
+					if(chatWithUser['userId'] === null) {
+						throw new Unauthorized('User must in chat');
 					}
 
 					return transaction.insertInto('chat_message')
