@@ -1,4 +1,4 @@
-import { emptySelection, TAG_REGULAR_EXPRESSION } from '@library/constant';
+import { EMPTY_SELECTION, TAG_REGULAR_EXPRESSION } from '@library/constant';
 import { createTags, kysely } from '@library/database';
 import { BadRequest } from '@library/httpError';
 import { Database, Group, GroupQuestion, GroupQuestionTable, GroupTagTable, Tag } from '@library/type';
@@ -21,7 +21,7 @@ export default function (request: FastifyRequest<{
 			let groupId: Group['id'];
 
 			return kysely.selectFrom('media')
-				.select(emptySelection)
+				.select(EMPTY_SELECTION)
 				.where('id', '=', request['body']['mediaId'])
 				.executeTakeFirst()
 				.then(function (media?: {}): Promise<Pick<Group, 'id'>> {

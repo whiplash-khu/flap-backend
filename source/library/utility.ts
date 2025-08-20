@@ -1,3 +1,3 @@
-export default function getEpoch(): number {
-	return Math.trunc(Date.now() / 1000);
+export default function getEpoch(date: Date = new Date()): number {
+	return Math.trunc(date.getTime() / 1000);
 }

@@ -1,12 +1,12 @@
-import { HttpErrorInformation } from './constant';
+import { HTTP_ERROR_NAMES } from './constant';
 
-export class HttpError<T extends keyof typeof HttpErrorInformation> extends Error {
+export class HttpError<T extends keyof typeof HTTP_ERROR_NAMES> extends Error {
 	statusCode: T;
 
 	constructor(statusCode: T, message?: string) {
 		super(message);
 
-		this['name'] = HttpErrorInformation[statusCode];
+		this['name'] = HTTP_ERROR_NAMES[statusCode];
 		this['statusCode'] = statusCode;
 	}
 }
@@ -89,11 +89,11 @@ export class MethodNotAllowed extends HttpError<405> {
 //	}
 //}
 
-//export class PayloadTooLarge extends HttpError<413> {
-//	constructor(message?: string) {
-//		super(413, message);
-//	}
-//}
+export class PayloadTooLarge extends HttpError<413> {
+	constructor(message?: string) {
+		super(413, message);
+	}
+}
 
 //export class URITooLong extends HttpError<414> {
 //	constructor(message?: string) {
@@ -101,11 +101,11 @@ export class MethodNotAllowed extends HttpError<405> {
 //	}
 //}
 
-//export class UnsupportedMediaType extends HttpError<415> {
-//	constructor(message?: string) {
-//		super(415, message);
-//	}
-//}
+export class UnsupportedMediaType extends HttpError<415> {
+	constructor(message?: string) {
+		super(415, message);
+	}
+}
 
 //export class RangeNotSatisfiable extends HttpError<416> {
 //	constructor(message?: string) {

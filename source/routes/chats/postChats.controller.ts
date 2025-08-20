@@ -1,4 +1,4 @@
-import { emptySelection } from '@library/constant';
+import { EMPTY_SELECTION } from '@library/constant';
 import { kysely } from '@library/database';
 import { BadRequest } from '@library/httpError';
 import { Chat, ChatUserTable, Database, User } from '@library/type';
@@ -37,7 +37,7 @@ export default function (request: FastifyRequest<{
 					}
 
 					return transaction.selectFrom('chat_user')
-						.select(emptySelection)
+						.select(EMPTY_SELECTION)
 						.groupBy('chat_id')
 						.having(kysely.fn.countAll(), '=', request['body']['userIds']['length'])
 						.having(kysely.fn.count(function (expressionBuilder: ExpressionBuilder<Database, 'chat_user'>): ExpressionWrapper<Database, "chat_user", number | null> {
