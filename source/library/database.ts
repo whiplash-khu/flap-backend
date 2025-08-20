@@ -2,7 +2,7 @@ import { Insertable, Kysely, OnConflictBuilder, OnConflictUpdateBuilder, Postgre
 import { Database, Tag, TagTable } from './type';
 import { Pool } from 'pg';
 import { randomBytes } from 'crypto';
-import { emptySelection } from './constant';
+import { EMPTY_SELECTION } from './constant';
 
 export const kysely: Kysely<Database> = new Kysely<Database>({
 	dialect: new PostgresDialect({
@@ -16,7 +16,7 @@ export function createUniqueToken(kysely: Kysely<Database>, table: 'user_lost_pa
 	const token: string = randomBytes(32).toString('hex');
 
 	return kysely.selectFrom(table)
-		.select(emptySelection)
+		.select(EMPTY_SELECTION)
 		.where('token', '=', token)
 		.limit(1)
 		.executeTakeFirst()

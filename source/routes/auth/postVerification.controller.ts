@@ -1,4 +1,4 @@
-import { emptySelection, VERIFICATION_TEMPLATE } from '@library/constant';
+import { EMPTY_SELECTION, VERIFICATION_TEMPLATE } from '@library/constant';
 import { kysely, createUniqueToken } from '@library/database';
 import { BadRequest } from '@library/httpError';
 import { sendMail } from '@library/mailer';
@@ -16,7 +16,7 @@ export default function (request: FastifyRequest<{
 			let token: string;
 
 			return kysely.selectFrom('user')
-				.select(emptySelection)
+				.select(EMPTY_SELECTION)
 				.where('email', '=', request['body']['email'])
 				.limit(1)
 				.executeTakeFirst()
