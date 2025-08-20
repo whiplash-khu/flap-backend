@@ -32,7 +32,7 @@ export default function (request: FastifyRequest<{
 
 			reply.send({
 				id: user['id'],
-				token: {
+				tokens: {
 					refresh: JsonWebToken.create({
 						exp: Number['MAX_SAFE_INTEGER'],
 						uid: user['id']
