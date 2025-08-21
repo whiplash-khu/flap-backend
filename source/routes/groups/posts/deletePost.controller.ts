@@ -7,7 +7,7 @@ import { JoinBuilder, Nullable, Transaction, UpdateResult } from 'kysely';
 export default function (request: FastifyRequest<{
 	Params: {
 		groupId: Post['groupId'];
-        postId: Post['id'];
+		postId: Post['id'];
 	};
 }>, reply: FastifyReply): Promise<void> {
 	return kysely.transaction()
@@ -37,9 +37,9 @@ export default function (request: FastifyRequest<{
 						.set({
 							deleted_at: new Date()
 						})
-                        .where('group_id', '=', request['params']['groupId'])
-                        .where('id', '=', request['params']['postId'])
-                        .where('post.user_id', '=', request['userId'])
+						.where('group_id', '=', request['params']['groupId'])
+						.where('id', '=', request['params']['postId'])
+						.where('post.user_id', '=', request['userId'])
 						.executeTakeFirstOrThrow();
 				})
 				.then(function (): void {
