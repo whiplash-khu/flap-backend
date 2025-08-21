@@ -15,10 +15,9 @@ export default function (request: FastifyRequest<{
 		.setIsolationLevel('serializable')
 		.execute(function (transaction: Transaction<Database>): Promise<void> {
 			return transaction.selectFrom('chat')
-				.select('chat.id')
 				.leftJoin('chat_user', function (joinBuilder: JoinBuilder<Database, 'chat' | 'chat_user'>): JoinBuilder<Database, 'chat' | 'chat_user'> {
 					return joinBuilder.onRef('chat.id', '=', 'chat_user.chat_id')
-						.on('chat_user.user_id', '=', request['params']['chatId']);
+						.on('chat_user.user_id', '=', request['userId']);
 				})
 				.select('chat_user.user_id as userId')
 				.where('chat.id', '=', request['params']['chatId'])

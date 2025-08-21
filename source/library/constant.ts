@@ -1,5 +1,3 @@
-import { AliasedRawBuilder, sql } from 'kysely';
-
 export const ENVIRONMENT_VARIABLE_NAMES = [
 	'DATABASE_URL',
 	'CACHE_DATABASE_URL',
@@ -13,13 +11,14 @@ export const ENVIRONMENT_VARIABLE_NAMES = [
 	'PBKDF2_ITERATION',
 	'AES_KEY',
 	'AES_INITIALIZE_VACTOR',
+	'STORAGE_REGION',
 	'STORAGE_ENDPOINT',
 	'STORAGE_ACCESS_KEY',
 	'STORAGE_SECRET_KEY',
 	'STORAGE_BUCKET_NAME'
 ] as const;
 
-export const HttpErrorInformation = {
+export const HTTP_ERROR_NAMES = {
 	400: 'BadRequest',
 	401: 'Unauthorized',
 	//402: 'PaymentRequired',
@@ -33,9 +32,9 @@ export const HttpErrorInformation = {
 	//410: 'Gone',
 	//411: 'LengthRequired',
 	//412: 'PreconditionFailed',
-	//413: 'PayloadTooLarge',
+	413: 'PayloadTooLarge',
 	//414: 'URITooLong',
-	//415: 'UnsupportedMediaType',
+	415: 'UnsupportedMediaType',
 	//416: 'RangeNotSatisfiable',
 	//417: 'ExpectationFailed',
 	418: 'ImATeapot',
@@ -70,6 +69,8 @@ export const AES_KEY: Buffer = Buffer.from(process['env']['AES_KEY'], 'hex');
 export const AES_INITIALIZE_VACTOR: Buffer = Buffer.from(process['env']['AES_INITIALIZE_VACTOR'], 'hex');
 
 export const PBKDF2_ITERATION: number = Number.parseInt(process['env']['PBKDF2_ITERATION'], 10);
+
+export const FILE_SIZE_LIMIT: number = Number.parseInt(process['env']['FILE_SIZE_LIMIT'] || "524300", 10);
 
 export const VERIFICATION_TEMPLATE: string = `<body style="margin:100px auto;width:540px;border-top:4px solid #1F2F56;padding:0 4px">
 	<header style="margin:32px 0">
@@ -111,9 +112,6 @@ export const LOST_PASSWORD_TEMPLATE: string = `<body style="margin:100px auto;wi
 
 export const TAG_REGULAR_EXPRESSION: RegExp = /(?<=#)[a-zA-Z0-9ㄱ-ㅣ가-힣_]{1,16}/g;
 
-export const emptySelection: AliasedRawBuilder<number, '1'> = sql<number>`1`.as('1');
-
-
 export const enum Emojis {
 	HEART = 1,
 	THUMBS_UP = 2,
@@ -122,3 +120,12 @@ export const enum Emojis {
 	SURPISE = 5,
 	CRY = 6
 }
+
+export const SUPPORTED_MIME_TYPES: Set<string> = new Set<string>([
+	'image/jpeg',
+	'image/png',
+	'image/gif',
+	'image/webp',
+	'image/avif',
+	'image/heic'
+]);

@@ -1,4 +1,5 @@
 import { createHmac } from 'crypto';
+import getEpoch from './utility';
 
 export default class JsonWebToken<T = Record<string, unknown>> {
 	#token: string;
@@ -13,10 +14,6 @@ export default class JsonWebToken<T = Record<string, unknown>> {
 		const headerAndPayload: string = 'eyJhbGciOiJIUzUxMiIsInR5cCI6IkpXVCJ9.' + Buffer.from(JSON.stringify(payload)).toString('base64url');
 
 		return headerAndPayload + '.' + createHmac('sha512', secretKey).update(headerAndPayload).digest('base64url');
-	}
-
-	public static getEpoch(): number {
-		return Math.trunc(Date.now() / 1000);
 	}
 
 	constructor(token: string, secretKey: string) {
@@ -58,6 +55,6 @@ export default class JsonWebToken<T = Record<string, unknown>> {
 			return false;
 		}
 
-		return this.#payload !== null && createHmac('sha512', this.#secretKey).update(this.#token.slice(firstIndex+1, this.#token['length'])).digest('base64url') === this.#token.slice(lastIndex+1) && this.#payload["exp"] > JsonWebToken.getEpoch();
+		return this.#payload !== null && createHmac('sha512', this.#secretKey).update(this.#token.slice(0, lastIndex)).digest('base64url') === this.#token.slice(lastIndex+1) && this.#payload["exp"] > getEpoch();
 	}
 }

@@ -1,4 +1,3 @@
-import { emptySelection } from '@library/constant';
 import { kysely } from '@library/database';
 import { NotFound } from '@library/httpError';
 import { Database, Group, GroupUser } from '@library/type';

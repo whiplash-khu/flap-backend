@@ -2,6 +2,7 @@ import { kysely } from '@library/database';
 import { BadRequest } from '@library/httpError';
 import JsonWebToken from '@library/jsonWebToken';
 import { User } from '@library/type';
+import getEpoch from '@library/utility';
 import { FastifyReply, FastifyRequest } from 'fastify';
 
 export default function (request: FastifyRequest<{
@@ -31,7 +32,7 @@ export default function (request: FastifyRequest<{
 
 			reply.send({
 				accessToken: JsonWebToken.create({
-					exp: JsonWebToken.getEpoch() + 7200,
+					exp: getEpoch() + 7200,
 					uid: refreshToken['payload']['uid']
 				}, process['env']['JSON_WEB_TOKEN_SECRET'])
 			});

@@ -3,6 +3,7 @@ import { kysely } from '@library/database';
 import { Unauthorized } from '@library/httpError';
 import JsonWebToken from '@library/jsonWebToken';
 import { User } from '@library/type';
+import getEpoch from '@library/utility';
 import { FastifyReply, FastifyRequest } from 'fastify';
 
 export default function (request: FastifyRequest<{
@@ -11,9 +12,9 @@ export default function (request: FastifyRequest<{
 	let user: Pick<User, 'id' | 'password'>;
 
 	return kysely.selectFrom('user')
-		.select(['user.id', 'user.email', 'user.password', 'user.name', 'user.birth_at as birthAt', 'user.school'])
-		.where('user.email', '=', request['body']['email'])
-		.where('user.deleted_at', 'is', null)
+		.select(['id', 'password'])
+		.where('email', '=', request['body']['email'])
+		.where('deleted_at', 'is', null)
 		.executeTakeFirst()
 		.then(function (_user?: Pick<User, 'id' | 'password'>): Promise<string> {
 			if(_user === undefined) {
@@ -31,13 +32,13 @@ export default function (request: FastifyRequest<{
 
 			reply.send({
 				id: user['id'],
-				token: {
+				tokens: {
 					refresh: JsonWebToken.create({
 						exp: Number['MAX_SAFE_INTEGER'],
 						uid: user['id']
 					}, encryptedPassword),
 					access: JsonWebToken.create({
-						exp: JsonWebToken.getEpoch() + 7200,
+						exp: getEpoch() + 7200,
 						uid: user['id']
 					}, process['env']['JSON_WEB_TOKEN_SECRET'])
 				}

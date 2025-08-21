@@ -1,8 +1,7 @@
-import { FastifyBaseLogger, FastifyReply, FastifyRequest } from 'fastify';
+import { FastifyBaseLogger } from 'fastify';
 import { Bindings, ChildLoggerOptions, LogLevel } from 'fastify/types/logger';
 import { Socket } from 'net';
 import { inspect } from 'util';
-import { ReplyLog } from './type';
 
 export default class Logger implements FastifyBaseLogger {
 	public msgPrefix: string | undefined;
@@ -31,7 +30,6 @@ export default class Logger implements FastifyBaseLogger {
 		}
 
 		print('\x1b[36m' + (new Date()).toISOString().slice(0, -5).replace('T', ' ') + ' \x1b[' + levelColor + 'm' + level.toUpperCase() + '\x1b[37m' + ' ');
-		//print((new Date()).toISOString().slice(0, -5).replace('T', ' ') + ' ' + level.toUpperCase() + ' ');
 
 		switch(typeof _arguments[0]) {
 			case 'string': {

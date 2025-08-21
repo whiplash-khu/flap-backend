@@ -7,6 +7,7 @@ import serializeHandler from '@handlers/serialize';
 import fastify, { FastifyInstance } from 'fastify';
 import rootModule from './routes/root.module';
 import responseLogHandler from '@handlers/responseLog';
+import multipartFormDataHandler from '@handlers/multipartFormData';
 
 const instance: FastifyInstance = fastify({
 	trustProxy: true,
@@ -20,6 +21,7 @@ instance.setErrorHandler(errorHandler);
 instance.setReplySerializer(serializeHandler);
 instance.addHook('preHandler', headerHandler);
 instance.addHook('onResponse', responseLogHandler);
+instance.addContentTypeParser('multipart/form-data', multipartFormDataHandler);
 
 rootModule.register(instance);
 

@@ -26,11 +26,6 @@ export type JsendResponse = {
 	};
 };
 
-export interface ReplyLog {
-	res: FastifyReply;
-	responseTime: number;
-}
-
 export type Resolve<T = void> = (value: T) => void;
 
 export type Reject = (error: unknown) => void;
@@ -49,7 +44,7 @@ export interface MediaTable {
 	id: GeneratedAlways<number>;
 	hash: Unupdateable<string>;
 	type: Unupdateable<string>;
-	created_at: GeneratedAlways<Date>;
+	created_at: Unupdateable<Date>;
 }
 
 export interface UserTable {
@@ -78,6 +73,7 @@ export interface GroupTable {
 }
 
 export interface GroupUserTable {
+	id: GeneratedAlways<number>;
 	group_id: Unupdateable<number>;
 	user_id: Unupdateable<number>;
 }

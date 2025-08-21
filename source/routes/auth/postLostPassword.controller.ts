@@ -4,7 +4,7 @@ import { BadRequest } from '@library/httpError';
 import { sendMail } from '@library/mailer';
 import { Database, User, UserLostPasswordTable } from '@library/type';
 import { FastifyReply, FastifyRequest } from 'fastify';
-import { Insertable, InsertResult, Transaction } from 'kysely';
+import { Insertable, InsertResult, OnConflictBuilder, OnConflictUpdateBuilder, Transaction } from 'kysely';
 
 export default function (request: FastifyRequest<{
 	Body: Pick<User, 'email'>;
@@ -16,7 +16,7 @@ export default function (request: FastifyRequest<{
 			// lazy
 			const userLostPassword: Insertable<UserLostPasswordTable> = {} as Insertable<UserLostPasswordTable>;
 
-			return kysely.selectFrom('user')
+			return transaction.selectFrom('user')
 				.select('id')
 				.where('email', '=', request['body']['email'])
 				.where('deleted_at', 'is', null)
@@ -28,13 +28,20 @@ export default function (request: FastifyRequest<{
 
 					userLostPassword['user_id'] = user['id'];
 
-					return createUniqueToken(kysely, 'user_lost_password');
+					return createUniqueToken(transaction, 'user_lost_password');
 				})
 				.then(function (token: string): Promise<InsertResult> {
 					userLostPassword['token'] = token;
 
 					return transaction.insertInto('user_lost_password')
 						.values(userLostPassword)
+						// resend mail
+						.onConflict(function (builder: OnConflictBuilder<Database, 'user_lost_password'>): OnConflictUpdateBuilder<Database, 'user_lost_password'> {
+							return builder.column('user_id')
+								.doUpdateSet({
+									token: token
+								});
+						})
 						.executeTakeFirstOrThrow();
 				})
 				.then(function (): Promise<boolean> {

@@ -1,12 +1,12 @@
 import { TAG_REGULAR_EXPRESSION } from '@library/constant';
-import { createTags, selectEmptyMedia, kysely } from '@library/database';
+import { createTags, kysely } from '@library/database';
 import { BadRequest } from '@library/httpError';
 import { Database, Group, GroupQuestion, GroupQuestionTable, GroupTagTable, Tag } from '@library/type';
 import { FastifyReply, FastifyRequest } from 'fastify';
 import { Insertable, InsertResult, Transaction } from 'kysely';
 
 export default function (request: FastifyRequest<{
-	Body: Pick<Group, | 'name' | 'introduction' | 'description' | 'startAt' | 'endAt'> & Partial<Pick<Group, 'mediaId'>> & {
+	Body: Pick<Group, | 'name' | 'introduction' | 'description' | 'startAt' | 'endAt' | 'mediaId'> & {
 		questions: GroupQuestion['content'][];
 	};
 }>, reply: FastifyReply): Promise<void> {
@@ -20,9 +20,9 @@ export default function (request: FastifyRequest<{
 		.execute(function (transaction: Transaction<Database>): Promise<void> {
 			let groupId: Group['id'];
 
-			request['body']['mediaId'] ||= 0;
-
-			return selectEmptyMedia(transaction, request['body']['mediaId'])
+			return kysely.selectFrom('media')
+				.where('id', '=', request['body']['mediaId'])
+				.executeTakeFirst()
 				.then(function (media?: {}): Promise<Pick<Group, 'id'>> {
 					if(media === undefined) {
 						throw new BadRequest('Body["mediaId"] must be valid');
@@ -31,7 +31,7 @@ export default function (request: FastifyRequest<{
 					return transaction.insertInto('group')
 						.values({
 							user_id: request['userId'],
-							media_id: request['body']['mediaId'] as number,
+							media_id: request['body']['mediaId'],
 							name: request['body']['name'],
 							introduction: request['body']['introduction'],
 							description: request['body']['description'],
@@ -44,7 +44,7 @@ export default function (request: FastifyRequest<{
 				.then(function (group: Pick<Group, 'id'>): Promise<Pick<Tag, 'id'>[]> {
 					groupId = group['id'];
 
-					return createTags(transaction, TAG_REGULAR_EXPRESSION.exec(request['body']['introduction']) || []);
+					return createTags(transaction, request['body']['introduction'].match(TAG_REGULAR_EXPRESSION) || []);
 				})
 				.then(function (tags: Pick<Tag, 'id'>[]): Promise<(InsertResult[] | InsertResult)[]> {
 					const groupTagInserts: Insertable<GroupTagTable>[] = [];

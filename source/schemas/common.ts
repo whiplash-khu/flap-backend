@@ -9,7 +9,7 @@ export default {
 	sha512: S.string()
 		.pattern(/^[0-9a-f]{128}$/),
 	token: S.string()
-		.pattern(/^[0-9a-f]{32}$/),
+		.pattern(/^[0-9a-f]{64}$/),
 	date: S.string()
 		.format('date'),
 	datetime: S.string()

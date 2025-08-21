@@ -10,7 +10,9 @@ export default function (request: FastifyRequest<{
 	Params: {
 		userId: User['id'];
 	};
-	Body: Partial<Pick<User, 'password' | 'name' | 'birthAt' | 'school' | 'mediaId'>>
+	Body: Partial<Pick<User, 'password' | 'name' | 'birthAt' | 'school' | 'mediaId'> & {
+		previousPassword: User['password'];
+	}>;
 }>, reply: FastifyReply): Promise<void> {
 	if(request['userId'] !== request['params']['userId']) {
 		throw new Unauthorized('Params["userId"] must be yourself');
@@ -20,26 +22,36 @@ export default function (request: FastifyRequest<{
 		.setAccessMode('read write')
 		.setIsolationLevel('serializable')
 		.execute(function (transaction: Transaction<Database>): Promise<void> {
-			const shouldUpdatePassword: boolean = typeof request['body']['password'] === 'string';
+			const shouldUpdatePassword: boolean = typeof request['body']['password'] === 'string' && typeof request['body']['previousPassword'] === 'string';
 			const shouldUpdateMediaId: boolean = typeof request['body']['mediaId'] === 'number';
+			let user: Pick<User, 'password' | 'email'>;
 			let encryptedPassword: string | undefined;
 			let media: Pick<Media, 'hash' | 'type'> | undefined;
 
 			return (shouldUpdatePassword ? transaction.selectFrom('user')
-				.select('email')
+				.select(['password', 'email'])
 				.where('id', '=', request['params']['userId'])
 				.executeTakeFirst()
-				.then(function (user?: Pick<User, 'email'>): Promise<string | undefined> | undefined {
-					if(user === undefined) {
+				.then(function (_user?: Pick<User, 'password' | 'email'>): Promise<string> {
+					if(_user === undefined) {
 						throw new NotFound('Params["userId"] must be valid');
+					}
+					
+					user = _user;
+
+					return encryptPbkdf2(request['body']['previousPassword'] as string, user['email']);
+				})
+				.then(function (encryptedPreviousPassword: string): Promise<string> {
+					if(encryptedPreviousPassword !== user['password']) {
+						throw new BadRequest('Body["previousPassword"] must be valid');
 					}
 
 					return encryptPbkdf2(request['body']['password'] as string, user['email']);
 				}) : Promise.resolve() as Promise<undefined>)
 				.then(function (_encryptedPassword?: string): Promise<Pick<Media, 'hash' | 'type'> | undefined> | undefined {
 					encryptedPassword = _encryptedPassword;
-
-					if(shouldUpdateMediaId) {
+					
+					if(!shouldUpdateMediaId) {
 						return;
 					}
 

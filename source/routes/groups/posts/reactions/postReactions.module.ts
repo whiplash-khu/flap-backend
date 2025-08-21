@@ -5,7 +5,7 @@ import deletePostReactionController from './deletePostReaction.controller';
 import postSchema from '@schemas/post';
 import postReactionSchema from '@schemas/postReaction';
 
-export default new Module('reactions', [
+export default new Module(':postId/reactions', [
 	{
 		method: 'POST',
 		url: '',

@@ -3,7 +3,7 @@ import { kysely } from '@library/database';
 import { NotFound, Unauthorized } from '@library/httpError';
 import { Post, Database, Pagenation, User, Media, PostReaction } from '@library/type';
 import { FastifyReply, FastifyRequest } from 'fastify';
-import { ExpressionBuilder, ExpressionWrapper, JoinBuilder, Nullable, SelectQueryBuilder, sql, Transaction } from 'kysely';
+import { JoinBuilder, Nullable, SelectQueryBuilder, sql, Transaction } from 'kysely';
 
 export default function (request: FastifyRequest<{
 	Querystring: Pagenation;
