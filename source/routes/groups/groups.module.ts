@@ -8,8 +8,6 @@ import getGroupsController from './getGroups.controller';
 import getGroupController from './getGroup.controller';
 import patchGroupController from './patchGroup.controller';
 import deleteGroupController from './deleteGroup.controller';
-import groupPostsModule from './posts/groupPosts.module'
-import groupPostReactionsModule from './posts/reactions/groupPostReactions.module'
 
 export default new Module('groups', [
 	{
@@ -86,4 +84,4 @@ export default new Module('groups', [
 				.prop('groupId', groupSchema['id'].required())
 		}
 	}
-], [groupPostsModule, groupPostReactionsModule]);
+]);

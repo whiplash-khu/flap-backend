@@ -1,7 +1,7 @@
 import { kysely } from '@library/database';
 import { Database, Group, GroupTag, Media, Pagenation, Tag } from '@library/type';
 import { FastifyReply, FastifyRequest } from 'fastify';
-import { SelectQueryBuilder, sql, Transaction } from 'kysely';
+import { SelectQueryBuilder, Transaction } from 'kysely';
 
 export default function (request: FastifyRequest<{
 	Querystring: Pagenation;
@@ -53,7 +53,7 @@ export default function (request: FastifyRequest<{
 						.innerJoin('group_tag', 'tag.id', 'group_tag.tag_id')
 						.select('group_tag.group_id as groupId')
 						.where('group_tag.group_id', 'in', groupIds)
-						.orderBy(sql`array_position(array(${groupIds.join(',')}),groupId)`)
+						.orderBy('group_tag.group_id', 'desc')
 						.limit(3)
 						.execute();
 				})

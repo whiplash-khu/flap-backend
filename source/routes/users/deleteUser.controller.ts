@@ -2,7 +2,7 @@ import { kysely } from '@library/database';
 import { Unauthorized } from '@library/httpError';
 import { Database, User } from '@library/type';
 import { FastifyReply, FastifyRequest } from 'fastify';
-import { Transaction, UpdateResult } from 'kysely';
+import { Transaction } from 'kysely';
 
 export default function (request: FastifyRequest<{
 	Params: {
