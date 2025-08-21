@@ -112,3 +112,13 @@ export const LOST_PASSWORD_TEMPLATE: string = `<body style="margin:100px auto;wi
 export const TAG_REGULAR_EXPRESSION: RegExp = /(?<=#)[a-zA-Z0-9ㄱ-ㅣ가-힣_]{1,16}/g;
 
 export const emptySelection: AliasedRawBuilder<number, '1'> = sql<number>`1`.as('1');
+
+
+export const enum Emojis {
+	HEART = 1,
+	THUMBS_UP = 2,
+	CHECK = 3,
+	SMILE = 4,
+	SURPISE = 5,
+	CRY = 6
+}

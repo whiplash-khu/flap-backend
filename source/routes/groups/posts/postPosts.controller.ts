@@ -1,40 +1,41 @@
 import { kysely } from '@library/database';
 import { NotFound, Unauthorized } from '@library/httpError';
-import { Post, Database, GroupUser } from '@library/type';
+import { Post, Database, GroupUser, Group } from '@library/type';
 import { FastifyReply, FastifyRequest } from 'fastify';
-import { JoinBuilder, Nullable, Transaction } from 'kysely';
+import { JoinBuilder, Transaction } from 'kysely';
 
 export default function (request: FastifyRequest<{
-	Params: {
-		groupId: Post['groupId'];
-	};
-	Body: {
-		content: Post['content'];
-		isNotice: Post['isNotice'];
-	};
+	Params: Pick<Post, 'groupId'>;
+	Body: Pick<Post, 'content' | 'isNotice'>;
 }>, reply: FastifyReply): Promise<void> {
 	return kysely.transaction()
 		.setAccessMode('read write')
 		.setIsolationLevel('serializable')
 		.execute(function (transaction: Transaction<Database>): Promise<void> {
 			return transaction.selectFrom('group')
-				.select('group.id')
+				.select('group.user_id as userId')
 				.leftJoin('group_user', function (joinBuilder: JoinBuilder<Database, 'group' | 'group_user'>): JoinBuilder<Database, 'group' | 'group_user'> {
 					return joinBuilder
 						.onRef('group.id', '=', 'group_user.group_id')
 						.on('group_user.user_id', '=', request['userId']);
 				})
-				.select('group_user.user_id as userId')
-				.where('group.id', '=', Number(request['params']['groupId']))
+				.select('group_user.user_id as _userId')
+				.where('group.id', '=', request['params']['groupId'])
 				.where('group.deleted_at', 'is', null)
 				.executeTakeFirst()
-				.then(function (groupWithUser?: Nullable<Pick<GroupUser, 'userId'>>): Promise<Pick<Post,'id'>> {
+				.then(function (groupWithUser?: Pick<Group, 'userId'> & {
+					_userId: GroupUser['userId'] | null;
+				}): Promise<Pick<Post,'id'>> {
 					if(groupWithUser === undefined) {
-						throw new NotFound('Params ["groupId"] must be valid');
+						throw new NotFound('Params["groupId"] must be valid');
 					}
 
-					if(typeof groupWithUser['userId'] !== 'number') {
-						throw new Unauthorized('Params["userId"] must in group');
+					if(groupWithUser['_userId'] === null) {
+						throw new Unauthorized('User must be in group');
+					}
+
+					if(groupWithUser['userId'] !== request['userId'] && request['body']['isNotice']) {
+						throw new Unauthorized('User must be group owner');
 					}
 
 					return transaction.insertInto('post')
@@ -47,9 +48,9 @@ export default function (request: FastifyRequest<{
 						.returning('id')
 						.executeTakeFirstOrThrow();
 				})
-				.then(function (groupPost: Pick<Post, 'id'>): void {
+				.then(function (post: Pick<Post, 'id'>): void {
 					reply.status(201)
-						.send(groupPost);
+						.send(post);
 				});
 		});
 }

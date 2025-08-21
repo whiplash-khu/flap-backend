@@ -124,7 +124,7 @@ export interface PostTable {
 export interface PostReactionTable {
 	post_id: Unupdateable<number>;
 	user_id: Unupdateable<number>;
-	emoji: Unupdateable<string>;
+	emoji: Unupdateable<number>;
 }
 
 export interface ScheduleTable {

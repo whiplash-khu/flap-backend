@@ -1,8 +1,9 @@
+import { Emojis } from '@library/constant';
 import { kysely } from '@library/database';
 import { NotFound, Unauthorized } from '@library/httpError';
-import { Post, Database, Pagenation, User, Media } from '@library/type';
+import { Post, Database, Pagenation, User, Media, PostReaction } from '@library/type';
 import { FastifyReply, FastifyRequest } from 'fastify';
-import { JoinBuilder, Nullable, Transaction } from 'kysely';
+import { ExpressionBuilder, ExpressionWrapper, JoinBuilder, Nullable, SelectQueryBuilder, sql, Transaction } from 'kysely';
 
 export default function (request: FastifyRequest<{
 	Querystring: Pagenation;
@@ -14,8 +15,17 @@ export default function (request: FastifyRequest<{
 		.setAccessMode('read only')		 
 		.setIsolationLevel('repeatable read')
 		.execute(function (transaction: Transaction<Database>): Promise<void> {
+			const posts: (Pick<Post, 'id' | 'content' | 'createdAt' | 'isNotice'> & {
+				user: Pick<User, 'id' | 'name'> & {
+					media: Pick<Media, 'id' | 'hash' | 'type'>;
+				};
+				reactionCounts: {
+					count: number;
+					isReacted: boolean;
+				}[];
+			})[] = [];
+
 			return transaction.selectFrom('group')
-				.select('group.id')
 				.leftJoin('group_user', function (joinBuilder: JoinBuilder<Database, 'group' | 'group_user'>): JoinBuilder<Database, 'group' | 'group_user'> {
 					return joinBuilder.onRef('group.id', '=', 'group_user.group_id')
 						.on('group_user.user_id', '=', request['userId']);
@@ -24,13 +34,13 @@ export default function (request: FastifyRequest<{
 				.where('group.id', '=', request['params']['groupId'])
 				.where('group.deleted_at', 'is', null)
 				.executeTakeFirst()
-				.then(function (groupWithUser?: Nullable<Pick<Post, 'userId'>>) {
+				.then(function (groupWithUser?: Nullable<Pick<Post, 'userId'>>): Promise<Pick<Post & User & Media, 'id' | 'content' | 'createdAt' | 'isNotice' | 'userId' | 'name' | 'mediaId' | 'hash' | 'type'>[]> {
 					if(groupWithUser === undefined) {
-						throw new NotFound('Params ["groupId"] must be valid');
+						throw new NotFound('Params["groupId"] must be valid');
 					}
 
-					if(typeof groupWithUser['userId'] !== 'number') {
-						throw new Unauthorized('Params["userId"] must in group');
+					if(groupWithUser['userId'] === null) {
+						throw new Unauthorized('User must be in group');
 					}
 
 					return transaction.selectFrom('post')
@@ -49,59 +59,68 @@ export default function (request: FastifyRequest<{
 						])
 						.where('post.group_id', '=', request['params']['groupId'])
 						.where('post.deleted_at', 'is', null)
-						.$if(typeof request['query']['index'] === 'number', function (queryBuilder)   {
-							return queryBuilder.where('post.id', '<', request['query']['index'] as number)
+						.$if(typeof request['query']['index'] === 'number', function (queryBuilder: SelectQueryBuilder<Database, 'post' | 'user' | 'media', Pick<Post & User & Media, 'id' | 'content' | 'createdAt' | 'isNotice' | 'userId' | 'name' | 'mediaId' | 'hash' | 'type'>>): SelectQueryBuilder<Database, 'post' | 'user' | 'media', Pick<Post & User & Media, 'id' | 'content' | 'createdAt' | 'isNotice' | 'userId' | 'name' | 'mediaId' | 'hash' | 'type'>> {
+							return queryBuilder.where('post.id', '<', request['query']['index'] as number);
 						}) 
 						.orderBy('post.id', 'desc')
 						.limit(request['query']['size'])
 						.execute();
 				})
-				.then(function (_groupPosts: Pick<Post & User & Media, 'id' | 'content' | 'createdAt' | 'isNotice' | 'userId' | 'name' | 'mediaId' | 'hash' | 'type'>[]): Promise<void> {
-					const groupPosts: (Pick<Post, 'id' | 'content' | 'createdAt' | 'isNotice'> & {
-						user: Pick<User, 'id' | 'name'> & {
-							media: Pick<Media, 'id' | 'hash' | 'type'>;
-						};
-						reactions: Record<string, number>;
-					})[] = [];
-
+				.then(function (_posts: Pick<Post & User & Media, 'id' | 'content' | 'createdAt' | 'isNotice' | 'userId' | 'name' | 'mediaId' | 'hash' | 'type'>[]): Promise<(Pick<PostReaction, 'postId' | 'emoji'> & {
+					count: number;
+					isReacted: boolean;
+				})[]> {
 					const postIds: number[] = [];
-					const postId = new Map<number, number>();
 
-					for (let i = 0; i < _groupPosts.length; i++) {
-						groupPosts.push({
-							id: _groupPosts[i]['id'],
-							content: _groupPosts[i]['content'],
-							createdAt: _groupPosts[i]['createdAt'],
-							isNotice: _groupPosts[i]['isNotice'],
-							reactions: {},
+					for (let i: number = 0; i < _posts['length']; i++) {
+						postIds.push(_posts[i]['id']);
+						posts.push({
+							id: _posts[i]['id'],
+							content: _posts[i]['content'],
+							createdAt: _posts[i]['createdAt'],
+							isNotice: _posts[i]['isNotice'],
+							reactionCounts: (new Array(Emojis['CRY'])).fill(0),
 							user: {
-								id: _groupPosts[i]['userId'],
-								name: _groupPosts[i]['name'],
+								id: _posts[i]['userId'],
+								name: _posts[i]['name'],
 								media: {
-									id: _groupPosts[i]['mediaId'],
-									hash: _groupPosts[i]['hash'],
-									type: _groupPosts[i]['type'],
+									id: _posts[i]['mediaId'],
+									hash: _posts[i]['hash'],
+									type: _posts[i]['type'],
 								}
 							},
 						});
-						postIds.push(_groupPosts[i]['id']);
-						postId.set(_groupPosts[i]['id'], i);
 					}
+
 					return transaction.selectFrom('post_reaction')
-						.select(['post_id as postId', 'emoji'])
-						.select(kysely.fn.countAll<number>().as('count'))
+						.select([
+							'post_id as postId',
+							'emoji',
+							kysely.fn.countAll<number>().as('count'),
+							// needs type casting
+							sql<boolean>`max((user_id = ${request['userId']})::integer)::boolean`.as('isReacted')
+						])
 						.where('post_id', 'in', postIds)
 						.groupBy(['post_id', 'emoji'])
-						.execute()
-						.then(function (emojis: { postId: number; emoji: string; count: number }[]): void {
-							for (let i = 0; i < emojis.length; i++) {
-								const _postId = postId.get(emojis[i]['postId']);
-								if (typeof _postId === 'number') {
-									groupPosts[_postId]['reactions'][emojis[i]['emoji']] = emojis[i]['count'];
-								}
-							}
-							reply.send(groupPosts);
-						});
+						.orderBy('post_id', 'desc')
+						.execute();
+				})
+				.then(function (postReactions: (Pick<PostReaction, 'postId' | 'emoji'> & {
+					count: number;
+					isReacted: boolean;
+				})[]): void {
+					for(let i: number = 0, j: number = 0; i < postReactions['length']; i++) {
+						if(i !== 0 && postReactions[i - 1]['postId'] !== postReactions[i]['postId']) {
+							j++;
+						}
+
+						posts[j]['reactionCounts'][postReactions[i]['emoji'] - 1] = {
+							count: postReactions[i]['count'],
+							isReacted: postReactions[i]['isReacted']
+						};
+					}
+
+					reply.send(posts);
 				});
 		});
 }

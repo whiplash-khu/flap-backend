@@ -60,19 +60,3 @@ export function createTags(kysely: Kysely<Database>, names: Tag['name'][]): Prom
 		.returning('id')
 		.execute();
 }
-
-const emoji = {
-	1: 'good',
-	2: 'heart',
-	3: 'check',
-	4: 'star'
-} as const;
-
-export type emojiName = typeof emoji[keyof typeof emoji]; 
-
-export function getEmojiName(emojiId?: number | null): emojiName | undefined {
-	if (typeof emojiId !== 'number') return undefined;
-	return (emojiId in emoji)
-		? emoji[emojiId as keyof typeof emoji] 
-		: undefined;
-}
