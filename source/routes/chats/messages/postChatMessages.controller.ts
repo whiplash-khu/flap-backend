@@ -28,7 +28,7 @@ export default function (request: FastifyRequest<{
 					}
 
 					if(chatWithUser['userId'] === null) {
-						throw new Unauthorized('User must in chat');
+						throw new Unauthorized('User must be in chat');
 					}
 
 					return transaction.insertInto('chat_message')

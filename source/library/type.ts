@@ -26,11 +26,6 @@ export type JsendResponse = {
 	};
 };
 
-export interface ReplyLog {
-	res: FastifyReply;
-	responseTime: number;
-}
-
 export type Resolve<T = void> = (value: T) => void;
 
 export type Reject = (error: unknown) => void;
@@ -125,7 +120,7 @@ export interface PostTable {
 export interface PostReactionTable {
 	post_id: Unupdateable<number>;
 	user_id: Unupdateable<number>;
-	emoji: Unupdateable<string>;
+	emoji: Unupdateable<number>;
 }
 
 export interface ScheduleTable {

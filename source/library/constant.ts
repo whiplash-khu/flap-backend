@@ -1,5 +1,3 @@
-import { AliasedRawBuilder, sql } from 'kysely';
-
 export const ENVIRONMENT_VARIABLE_NAMES = [
 	'DATABASE_URL',
 	'CACHE_DATABASE_URL',
@@ -113,6 +111,15 @@ export const LOST_PASSWORD_TEMPLATE: string = `<body style="margin:100px auto;wi
 </body>`;
 
 export const TAG_REGULAR_EXPRESSION: RegExp = /(?<=#)[a-zA-Z0-9ㄱ-ㅣ가-힣_]{1,16}/g;
+
+export const enum Emojis {
+	HEART = 1,
+	THUMBS_UP = 2,
+	CHECK = 3,
+	SMILE = 4,
+	SURPISE = 5,
+	CRY = 6
+}
 
 export const SUPPORTED_MIME_TYPES: Set<string> = new Set<string>([
 	'image/jpeg',
