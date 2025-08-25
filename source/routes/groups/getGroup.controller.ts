@@ -15,7 +15,7 @@ export default function (request: FastifyRequest<{
 		.execute(function (transaction: Transaction<Database>): Promise<void> {
 			return transaction.selectFrom('group')
 				.select('group.id')
-				.leftJoin('group_user', function (joinBuilder: JoinBuilder<Database, 'group' | 'group_user'>): JoinBuilder<Database, 'group' | 'group_user'> {
+				.leftJoin('group_user', function (joinBuilder: JoinBuilder<Database, 'group' | 'group_user'>): typeof joinBuilder {
 					return joinBuilder.onRef('group.id', '=', 'group_user.group_id')
 						.on('group_user.user_id', '=', request['userId']);
 				})
@@ -29,7 +29,7 @@ export default function (request: FastifyRequest<{
 
 					return transaction.selectFrom('group')
 						.select(['group.id', 'group.name', 'group.description', 'group.start_at as startAt', 'group.end_at as endAt'])
-						.$if(typeof groupWithUser['userId'] === 'number', function (queryBulder: SelectQueryBuilder<Database, "group", Pick<Group, 'id' | 'name' | 'description' | 'startAt' | 'endAt'>>): SelectQueryBuilder<Database, "group", Omit<Group, 'mediaId' | 'deletedAt'>> {
+						.$if(typeof groupWithUser['userId'] === 'number', function (queryBulder: SelectQueryBuilder<Database, "group", Pick<Group, 'id' | 'name' | 'description' | 'startAt' | 'endAt'>>): typeof queryBulder {
 							return queryBulder.select(['group.user_id as userId', 'group.introduction', 'group.created_at as createdAt']);
 						})
 						.where('group.id', '=', request['params']['groupId'])

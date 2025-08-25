@@ -1,5 +1,6 @@
 import { kysely } from '@library/database';
 import { NotFound, Unauthorized } from '@library/httpError';
+import { getTimestamp } from '@library/time';
 import { Database, Group, GroupUser, Post } from '@library/type';
 import { FastifyReply, FastifyRequest } from 'fastify';
 import { JoinBuilder, Nullable, Transaction, UpdateResult } from 'kysely';
@@ -16,12 +17,12 @@ export default function (request: FastifyRequest<{
 		.execute(function (transaction: Transaction<Database>): Promise<void> {
 			return transaction.selectFrom('group')
 				.select('group.user_id as userId')
-				.leftJoin('group_user', function (joinBuilder: JoinBuilder<Database, 'group' | 'group_user'>): JoinBuilder<Database, 'group' | 'group_user'> {
+				.leftJoin('group_user', function (joinBuilder: JoinBuilder<Database, 'group' | 'group_user'>): typeof joinBuilder {
 					return joinBuilder.onRef('group.id', '=', 'group_user.group_id')
 						.on('group_user.user_id', '=', request['userId']);
 				})
 				.select('group_user.user_id as _userId')
-				.leftJoin('post', function (joinBuilder: JoinBuilder<Database, 'group' | 'group_user' | 'post'>): JoinBuilder<Database, 'group' | 'group_user' | 'post'> {
+				.leftJoin('post', function (joinBuilder: JoinBuilder<Database, 'group' | 'group_user' | 'post'>): typeof joinBuilder {
 					return joinBuilder.onRef('group.id', '=', 'post.group_id')
 						.on('post.id', '=', request['params']['postId'])
 						.on('post.deleted_at', 'is', null);
@@ -54,7 +55,7 @@ export default function (request: FastifyRequest<{
 
 					return transaction.updateTable('post')
 						.set({
-							deleted_at: new Date()
+							deleted_at: getTimestamp()
 						})
 						.where('group_id', '=', request['params']['groupId'])
 						.where('id', '=', request['params']['postId'])

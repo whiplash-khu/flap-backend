@@ -35,7 +35,7 @@ export default function multipartFormDataHandler(request: FastifyRequest, payloa
 
 			const hash: Hash = createHash('sha512');
 			const chunks: Buffer[] = [];
-	
+
 			stream.on('data', function (chunk: Buffer): void {
 				hash.update(chunk);
 				chunks.push(chunk);
@@ -51,7 +51,7 @@ export default function multipartFormDataHandler(request: FastifyRequest, payloa
 					if(error !== undefined) {
 						return;
 					}
-		
+
 					request['file'] = {
 						hash: hash.digest('hex'),
 						buffer: Buffer.concat(chunks),
@@ -74,7 +74,7 @@ export default function multipartFormDataHandler(request: FastifyRequest, payloa
 			.once('finish', function (): void {
 				if(error === undefined) {
 					done(null);
-					
+
 					return;
 				}
 

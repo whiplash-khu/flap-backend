@@ -4,7 +4,7 @@ import { promisify } from 'util';
 
 export function encryptAes(text: string): string {
 	const cipher: Cipheriv = createCipheriv('aes-256-cbc', AES_KEY, AES_INITIALIZE_VACTOR);
-	
+
 	return cipher.update(text, 'utf-8', 'hex') + cipher.final('hex');
 }
 

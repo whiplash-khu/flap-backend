@@ -20,18 +20,18 @@ export default function (request: FastifyRequest<{
 			return transaction.selectFrom('group')
 				.where('group.id', '=', request['params']['groupId'])
 				.where('group.deleted_at', 'is', null)
-				.leftJoin('group_user', function (joinBuilder: JoinBuilder<Database, 'group' | 'group_user'>): JoinBuilder<Database, 'group' | 'group_user'> {
+				.leftJoin('group_user', function (joinBuilder: JoinBuilder<Database, 'group' | 'group_user'>): typeof joinBuilder {
 					return joinBuilder.onRef('group.id', '=', 'group_user.group_id')
 						.on('group_user.user_id', '=', request['userId']);
 				})
 				.select('group_user.user_id as userId')
-				.leftJoin('post', function (joinBuilder: JoinBuilder<Database, 'group' | 'group_user' | 'post'>): JoinBuilder<Database, 'group' | 'group_user' | 'post'> {
+				.leftJoin('post', function (joinBuilder: JoinBuilder<Database, 'group' | 'group_user' | 'post'>): typeof joinBuilder {
 					return joinBuilder.onRef('group.id', '=', 'post.group_id')
 						.on('post.id', '=', request['params']['postId'])
 						.on('post.deleted_at', 'is', null);
 				})
 				.select('post.id as postId')
-				.leftJoin('post_reaction', function (joinBuilder: JoinBuilder<Database, 'group' | 'group_user' | 'post' | 'post_reaction'>): JoinBuilder<Database, 'group' | 'group_user' | 'post' | 'post_reaction'> {
+				.leftJoin('post_reaction', function (joinBuilder: JoinBuilder<Database, 'group' | 'group_user' | 'post' | 'post_reaction'>): typeof joinBuilder {
 					return joinBuilder.onRef('post.id', '=', 'post_reaction.post_id')
 						.on('post_reaction.user_id', '=', request['userId']);
 				})

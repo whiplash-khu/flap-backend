@@ -13,7 +13,7 @@ export default function (request: FastifyRequest<{
 		.setIsolationLevel('repeatable read')
 		.execute(function (transaction: Transaction<Database>): Promise<void> {
 			return transaction.selectFrom('group')
-				.leftJoin('group_user', function (joinBuilder: JoinBuilder<Database, 'group' | 'group_user'>): JoinBuilder<Database, 'group' | 'group_user'> {
+				.leftJoin('group_user', function (joinBuilder: JoinBuilder<Database, 'group' | 'group_user'>): typeof joinBuilder {
 					return joinBuilder.onRef('group.id', '=', 'group_user.group_id')
 						.on('group_user.user_id', '=', request['userId']);
 				})
@@ -27,7 +27,7 @@ export default function (request: FastifyRequest<{
 					}
 
 					if(groupWithUser['userId'] === null) {
-						throw new Unauthorized('User must in group');
+						throw new Unauthorized('User must be in group');
 					}
 
 					return transaction.selectFrom('group_user')
@@ -37,7 +37,7 @@ export default function (request: FastifyRequest<{
 						.select(['media.hash', 'media.type'])
 						.where('group_user.group_id', '=', request['params']['groupId'])
 						.where('user.deleted_at', 'is', null)
-						.$if(typeof request['query']['index'] === 'number', function (queryBulder: SelectQueryBuilder<Database, "group_user" | "media" | "user", Pick<User & Media, 'id' | 'name' | 'school' | 'mediaId' | 'hash' | 'type'>>): SelectQueryBuilder<Database, "group_user" | "media" | "user", Pick<User & Media, 'id' | 'name' | 'school' | 'mediaId' | 'hash' | 'type'>> {
+						.$if(typeof request['query']['index'] === 'number', function (queryBulder: SelectQueryBuilder<Database, "group_user" | "media" | "user", Pick<User & Media, 'id' | 'name' | 'school' | 'mediaId' | 'hash' | 'type'>>): typeof queryBulder {
 							return queryBulder.where('group_user.id', '<', request['query']['index'] as number);
 						})
 						.limit(request['query']['size'])
