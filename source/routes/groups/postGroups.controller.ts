@@ -10,8 +10,11 @@ export default function (request: FastifyRequest<{
 		questions: GroupQuestion['content'][];
 	};
 }>, reply: FastifyReply): Promise<void> {
+	request['body']['startAt'] = new Date(request['body']['startAt']);
+	request['body']['endAt'] = new Date(request['body']['endAt']);
+
 	if(request['body']['startAt'] > request['body']['endAt']) {
-		throw new BadRequest('Body["startAt"] must be earlier than Body["endAt"]');
+		throw new BadRequest('Body["startAt"] must be earlier than body["endAt"]');
 	}
 
 	return kysely.transaction()
@@ -67,7 +70,8 @@ export default function (request: FastifyRequest<{
 					return Promise.all([
 						transaction.insertInto('group_tag')
 							.values(groupTagInserts)
-							.execute(), transaction.insertInto('group_question')
+							.execute(),
+						transaction.insertInto('group_question')
 							.values(groupQuestionInserts)
 							.execute(),
 						transaction.insertInto('group_user')

@@ -1,8 +1,9 @@
 import { kysely } from '@library/database';
 import { Unauthorized } from '@library/httpError';
+import { getTimestamp } from '@library/time';
 import { Database, User } from '@library/type';
 import { FastifyReply, FastifyRequest } from 'fastify';
-import { Transaction } from 'kysely';
+import { RawBuilder, Transaction } from 'kysely';
 
 export default function (request: FastifyRequest<{
 	Params: {
@@ -17,7 +18,7 @@ export default function (request: FastifyRequest<{
 		.setAccessMode('read write')
 		.setIsolationLevel('serializable')
 		.execute(function (transaction: Transaction<Database>): Promise<void> {
-			const now: Date = new Date();
+			const now: RawBuilder<Date> = getTimestamp();
 
 			return Promise.all([
 				transaction.updateTable('group')

@@ -14,7 +14,7 @@ export default function (request: FastifyRequest<{
 		.execute(function (transaction: Transaction<Database>): Promise<void> {
 			return transaction.selectFrom('group')
 				.select('group.user_id as userId')
-				.leftJoin('group_user', function (joinBuilder: JoinBuilder<Database, 'group' | 'group_user'>): JoinBuilder<Database, 'group' | 'group_user'> {
+				.leftJoin('group_user', function (joinBuilder: JoinBuilder<Database, 'group' | 'group_user'>): typeof joinBuilder {
 					return joinBuilder
 						.onRef('group.id', '=', 'group_user.group_id')
 						.on('group_user.user_id', '=', request['userId']);

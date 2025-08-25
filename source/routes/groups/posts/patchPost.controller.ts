@@ -16,12 +16,12 @@ export default function (request: FastifyRequest<{
 		.setIsolationLevel('serializable')
 		.execute(function (transaction: Transaction<Database>): Promise<void> {
 			return transaction.selectFrom('group')
-				.leftJoin('group_user', function (joinBuilder: JoinBuilder<Database, 'group' | 'group_user'>): JoinBuilder<Database, 'group' | 'group_user'> {
+				.leftJoin('group_user', function (joinBuilder: JoinBuilder<Database, 'group' | 'group_user'>): typeof joinBuilder {
 					return joinBuilder.onRef('group.id', '=', 'group_user.group_id')
 						.on('group_user.user_id', '=', request['userId']);
 				})
 				.select('group_user.user_id as userId')
-				.leftJoin('post', function (joinBuilder: JoinBuilder<Database, 'group' | 'group_user' | 'post'>): JoinBuilder<Database, 'group' | 'group_user' | 'post'> {
+				.leftJoin('post', function (joinBuilder: JoinBuilder<Database, 'group' | 'group_user' | 'post'>): typeof joinBuilder {
 					return joinBuilder.onRef('group.id', '=', 'post.group_id')
 						.on('post.id', '=', request['params']['postId'])
 						.on('post.deleted_at', 'is', null);
@@ -63,6 +63,6 @@ export default function (request: FastifyRequest<{
 					reply.status(204)
 						.send();
 				});
-					
+
 		});
 }

@@ -2,7 +2,7 @@ import { kysely } from '@library/database';
 import { BadRequest } from '@library/httpError';
 import JsonWebToken from '@library/jsonWebToken';
 import { User } from '@library/type';
-import getEpoch from '@library/utility';
+import { getEpoch } from '@library/time';
 import { FastifyReply, FastifyRequest } from 'fastify';
 
 export default function (request: FastifyRequest<{

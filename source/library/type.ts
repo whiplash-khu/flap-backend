@@ -1,7 +1,8 @@
-import { FastifyBaseLogger, FastifyReply, FastifySchema, FastifyTypeProvider, HTTPMethods, RouteHandlerMethod, RouteOptions as _RouteOptions } from 'fastify';
+import { FastifyBaseLogger, FastifySchema, FastifyTypeProvider, HTTPMethods, RouteHandlerMethod, RouteOptions as _RouteOptions } from 'fastify';
 import { IncomingMessage, Server, ServerResponse } from 'http';
 import { ArraySchema, BooleanSchema, ExtendedSchema, IntegerSchema, NullSchema, NumberSchema, ObjectSchema, StringSchema } from 'fluent-json-schema';
 import { ColumnType, GeneratedAlways, Selectable } from 'kysely';
+import { ScheduleAttendanceStatus } from './constant';
 
 export type RequiredJSONSchema = ObjectSchema | StringSchema | NumberSchema | ArraySchema | IntegerSchema | BooleanSchema;
 
@@ -129,14 +130,18 @@ export interface ScheduleTable {
 	name: ColumnType<string>;
 	start_at: ColumnType<Date>;
 	end_at: ColumnType<Date>;
+	address: ColumnType<string>;
+	place: ColumnType<string>;
+	description: ColumnType<string>;
 	created_at: GeneratedAlways<Date>;
 	deleted_at: Uninsertable<Date | null>;
 }
 
 export interface ScheduleAttendanceTable {
+	id: GeneratedAlways<number>;
 	schedule_id: Unupdateable<number>;
 	user_id: Unupdateable<number>;
-	status: ColumnType<number>;
+	status: ColumnType<ScheduleAttendanceStatus>;
 }
 
 export interface FeeTable {
@@ -251,4 +256,9 @@ export type UserLostPassword = Selectable<CamelizeKeys<UserLostPasswordTable>>;
 export interface Pagenation {
 	index?: number;
 	size: number;
+}
+
+export interface Calender {
+	startingDay: number;
+	length: number;
 }

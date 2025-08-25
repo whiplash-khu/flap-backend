@@ -26,7 +26,7 @@ export default function (request: FastifyRequest<{
 			})[] = [];
 
 			return transaction.selectFrom('group')
-				.leftJoin('group_user', function (joinBuilder: JoinBuilder<Database, 'group' | 'group_user'>): JoinBuilder<Database, 'group' | 'group_user'> {
+				.leftJoin('group_user', function (joinBuilder: JoinBuilder<Database, 'group' | 'group_user'>): typeof joinBuilder {
 					return joinBuilder.onRef('group.id', '=', 'group_user.group_id')
 						.on('group_user.user_id', '=', request['userId']);
 				})
@@ -59,7 +59,7 @@ export default function (request: FastifyRequest<{
 						])
 						.where('post.group_id', '=', request['params']['groupId'])
 						.where('post.deleted_at', 'is', null)
-						.$if(typeof request['query']['index'] === 'number', function (queryBuilder: SelectQueryBuilder<Database, 'post' | 'user' | 'media', Pick<Post & User & Media, 'id' | 'content' | 'createdAt' | 'isNotice' | 'userId' | 'name' | 'mediaId' | 'hash' | 'type'>>): SelectQueryBuilder<Database, 'post' | 'user' | 'media', Pick<Post & User & Media, 'id' | 'content' | 'createdAt' | 'isNotice' | 'userId' | 'name' | 'mediaId' | 'hash' | 'type'>> {
+						.$if(typeof request['query']['index'] === 'number', function (queryBuilder: SelectQueryBuilder<Database, 'post' | 'user' | 'media', Pick<Post & User & Media, 'id' | 'content' | 'createdAt' | 'isNotice' | 'userId' | 'name' | 'mediaId' | 'hash' | 'type'>>): typeof queryBuilder {
 							return queryBuilder.where('post.id', '<', request['query']['index'] as number);
 						}) 
 						.orderBy('post.id', 'desc')

@@ -10,8 +10,8 @@ export default function (request: FastifyRequest<{
 	};
 }>, reply: FastifyReply): Promise<void> {
 	return kysely.selectFrom('user')
-		.select(['user.id', 'user.media_id as mediaId', 'user.name', 'user.school'])
-		.$if(request['userId'] === request['params']['userId'], function (queryBuilder: SelectQueryBuilder<Database, 'user', Pick<User, 'id' | 'name' | 'school' | 'mediaId'>>): SelectQueryBuilder<Database, 'user', Pick<User, 'id' | 'name' | 'school' | 'mediaId' | 'email' | 'birthAt'>> {
+		.select(['user.media_id as mediaId', 'user.name', 'user.school'])
+		.$if(request['userId'] === request['params']['userId'], function (queryBuilder: SelectQueryBuilder<Database, 'user', Pick<User, 'name' | 'school' | 'mediaId'>>): typeof queryBuilder {
 			return queryBuilder.select(['user.email', 'user.birth_at as birthAt']);
 		})
 		.innerJoin('media', 'user.media_id', 'media.id')
@@ -20,13 +20,13 @@ export default function (request: FastifyRequest<{
 		.where('user.deleted_at', 'is', null)
 		.executeTakeFirst()
 		// lazy
-		.then(function (userWithMedia?: Pick<User & Media, 'id' | 'name' | 'school' | 'mediaId' | 'hash' | 'type'> & Partial<Pick<User, 'email' | 'birthAt'>>): void {
+		.then(function (userWithMedia?: Pick<User & Media, 'name' | 'school' | 'mediaId' | 'hash' | 'type'> & Partial<Pick<User, 'email' | 'birthAt'>>): void {
 			if(userWithMedia === undefined) {
 				throw new NotFound('Params["userId"] must be valid');
 			}
 
 			reply.send({
-				id: userWithMedia['id'],
+				id: request['params']['userId'],
 				email: userWithMedia['email'],
 				name: userWithMedia['name'],
 				birthAt: userWithMedia['birthAt'],
