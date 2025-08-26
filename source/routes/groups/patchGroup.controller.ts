@@ -18,14 +18,14 @@ export default function (request: FastifyRequest<{
 			const shouldUpdateEndAt: boolean = typeof request['body']['endAt'] === 'string';
 			const shouldUpdateMediaId: boolean = typeof request['body']['mediaId'] === 'number';
 			let media: Omit<Media, 'createdAt'> | undefined;
-			
+
 			if(shouldUpdateEndAt) {
 				request['body']['endAt'] = new Date(request['body']['endAt'] as Date);
 			}
 
 			return transaction.selectFrom('group')
 				.select('user_id as userId')
-				.$if(shouldUpdateEndAt, function (queryBuilder: SelectQueryBuilder<Database, 'group', Pick<Group, 'userId'>>): SelectQueryBuilder<Database, 'group', Pick<Group, 'userId' | 'startAt'>> {
+				.$if(shouldUpdateEndAt, function (queryBuilder: SelectQueryBuilder<Database, 'group', Pick<Group, 'userId'>>): typeof queryBuilder {
 					return queryBuilder.select('start_at as startAt');
 				})
 				.where('id', '=', request['params']['groupId'])
@@ -41,7 +41,7 @@ export default function (request: FastifyRequest<{
 					}
 
 					if(shouldUpdateEndAt && (group['startAt'] as Date) >= (request['body']['endAt'] as Date)) {
-						throw new BadRequest('Group["startAt"] must be earlier than Body["endAt"]');
+						throw new BadRequest('Group["startAt"] must be earlier than body["endAt"]');
 					}
 
 					if(!shouldUpdateMediaId) {

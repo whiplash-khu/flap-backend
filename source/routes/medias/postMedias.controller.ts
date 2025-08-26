@@ -1,7 +1,7 @@
 import { PutObjectCommand, PutObjectCommandOutput } from '@aws-sdk/client-s3';
 import { kysely, s3 } from '@library/database';
 import { Database, Media } from '@library/type';
-import getEpoch from '@library/utility';
+import { getEpoch, getTimestamp } from '@library/time';
 import { FastifyReply, FastifyRequest } from 'fastify';
 import { OnConflictBuilder, OnConflictUpdateBuilder, sql, Transaction } from 'kysely';
 
@@ -17,7 +17,7 @@ export default function (request: FastifyRequest, reply: FastifyReply): Promise<
 				.values({
 					hash: request['file']['hash'],
 					type: request['file']['mimeType'],
-					created_at: sql`to_timestamp(${now})`
+					created_at: getTimestamp(now)
 				})
 				.onConflict(function (builder: OnConflictBuilder<Database, 'media'>): OnConflictUpdateBuilder<Database, 'media'> {
 					return builder.column('hash')
@@ -25,12 +25,14 @@ export default function (request: FastifyRequest, reply: FastifyReply): Promise<
 							hash: sql`excluded.hash`
 						});
 				})
-				.returning(['id', 'created_at as createdAt'])
+				.returning(['id', sql<number>`extract(epoch from created_at)`.as('createdAt')])
 				.executeTakeFirstOrThrow()
-				.then(function (media: Pick<Media, 'id' | 'createdAt'>): Promise<PutObjectCommandOutput> | undefined {
+				.then(function (media: Pick<Media, 'id'> & {
+					createdAt: number;
+				}): Promise<PutObjectCommandOutput> | undefined {
 					mediaId = media['id'];
 
-					if(now !== getEpoch(media['createdAt'])) {
+					if(now !== media['createdAt']) {
 						return;
 					}
 

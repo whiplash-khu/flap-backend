@@ -2,9 +2,9 @@ import { encryptPbkdf2 } from '@library/crypto';
 import { kysely } from '@library/database';
 import { BadRequest } from '@library/httpError';
 import { Database, User, UserLostPassword } from '@library/type';
-import getEpoch from '@library/utility';
+import { getEpoch, getTimestamp } from '@library/time';
 import { FastifyReply, FastifyRequest } from 'fastify';
-import { sql, Transaction, UpdateResult } from 'kysely';
+import { Transaction, UpdateResult } from 'kysely';
 
 export default function (request: FastifyRequest<{
 	Body: Pick<UserLostPassword & User, 'token' | 'password'>;
@@ -19,7 +19,7 @@ export default function (request: FastifyRequest<{
 				.innerJoin('user', 'user_lost_password.user_id', 'user.id')
 				.select(['user.id', 'user.email'])
 				.where('user_lost_password.token', '=', request['body']['token'])
-				.where('user_lost_password.created_at', '>', sql<Date>`to_timestamp(${getEpoch() - 43200})`)
+				.where('user_lost_password.created_at', '>', getTimestamp(getEpoch() - 43200))
 				.executeTakeFirst()
 				.then(function (user?: Pick<User, 'id' | 'email'>): Promise<string> {
 					if(user === undefined) {

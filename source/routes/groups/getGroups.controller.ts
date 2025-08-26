@@ -1,7 +1,7 @@
 import { kysely } from '@library/database';
 import { Database, Group, GroupTag, Media, Pagenation, Tag } from '@library/type';
 import { FastifyReply, FastifyRequest } from 'fastify';
-import { QueryCreator, SelectQueryBuilder, sql, SqlBool, Transaction } from 'kysely';
+import { QueryCreator, SelectQueryBuilder, sql, Transaction } from 'kysely';
 
 export default function (request: FastifyRequest<{
 	Querystring: Pagenation;
@@ -20,7 +20,7 @@ export default function (request: FastifyRequest<{
 				.innerJoin('media', 'group.media_id', 'media.id')
 				.select(['media.hash', 'media.type'])
 				.where('group.deleted_at', 'is', null)
-				.$if(typeof request['query']['index'] === 'number', function (queryBulder: SelectQueryBuilder<Database, "group" | "media", Pick<Group & Media, 'id' | 'name' | 'startAt' | 'createdAt' | 'mediaId' | 'hash' | 'type'>>): SelectQueryBuilder<Database, "group" | "media", Pick<Group & Media, 'id' | 'name' | 'startAt' | 'createdAt' | 'mediaId' | 'hash' | 'type'>> {
+				.$if(typeof request['query']['index'] === 'number', function (queryBulder: SelectQueryBuilder<Database, "group" | "media", Pick<Group & Media, 'id' | 'name' | 'startAt' | 'createdAt' | 'mediaId' | 'hash' | 'type'>>): typeof queryBulder {
 					return queryBulder.where('group.id', '<', request['query']['index'] as number);
 				})
 				.orderBy('group.id', 'desc')
@@ -61,8 +61,7 @@ export default function (request: FastifyRequest<{
 						})
 						.selectFrom('_tag')
 						.select(['_tag.name', '_tag.groupId'])
-						// literal condition
-						.where(sql.raw<SqlBool>('"_tag"."rowNumber" < 4'))
+						.where("_tag.rowNumber", '<', 4)
 						.execute();
 				})
 				.then(function (tags: Pick<Tag & GroupTag, 'name' | 'groupId'>[]): void {

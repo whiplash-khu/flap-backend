@@ -1,5 +1,6 @@
 import { kysely } from '@library/database';
 import { NotFound, Unauthorized } from '@library/httpError';
+import { getTimestamp } from '@library/time';
 import { Database, Group } from '@library/type';
 import { FastifyReply, FastifyRequest } from 'fastify';
 import { Transaction, UpdateResult } from 'kysely';
@@ -29,7 +30,7 @@ export default function (request: FastifyRequest<{
 
 					return transaction.updateTable('group')
 						.set({
-							deleted_at: new Date()
+							deleted_at: getTimestamp()
 						})
 						.where('id', '=', request['params']['groupId'])
 						.executeTakeFirstOrThrow();

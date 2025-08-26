@@ -36,7 +36,7 @@ export default function (request: FastifyRequest<{
 					if(_user === undefined) {
 						throw new NotFound('Params["userId"] must be valid');
 					}
-					
+
 					user = _user;
 
 					return encryptPbkdf2(request['body']['previousPassword'] as string, user['email']);
@@ -50,7 +50,7 @@ export default function (request: FastifyRequest<{
 				}) : Promise.resolve() as Promise<undefined>)
 				.then(function (_encryptedPassword?: string): Promise<Pick<Media, 'hash' | 'type'> | undefined> | undefined {
 					encryptedPassword = _encryptedPassword;
-					
+
 					if(!shouldUpdateMediaId) {
 						return;
 					}

@@ -11,6 +11,7 @@ import deleteGroupController from './deleteGroup.controller';
 import postsModule from './posts/posts.module';
 import groupUsersModule from './users/groupUsers.module';
 import groupFormsModule from './forms/forms.module'
+import schedulesModule from './schedules/schedules.module';
 
 export default new Module('groups', [
 	{
@@ -87,4 +88,4 @@ export default new Module('groups', [
 				.prop('groupId', groupSchema['id'].required())
 		}
 	}
-], [postsModule, groupUsersModule, groupFormsModule]);
+], [groupFormsModule, postsModule, groupUsersModule, schedulesModule]);

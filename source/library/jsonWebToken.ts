@@ -1,5 +1,5 @@
 import { createHmac } from 'crypto';
-import getEpoch from './utility';
+import { getEpoch } from './time';
 
 export default class JsonWebToken<T = Record<string, unknown>> {
 	#token: string;

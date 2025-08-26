@@ -121,6 +121,12 @@ export const enum Emojis {
 	CRY = 6
 }
 
+export const enum ScheduleAttendanceStatus {
+	ABSENT = 1,
+	LATE = 2,
+	ATTEND = 3
+}
+
 export const SUPPORTED_MIME_TYPES: Set<string> = new Set<string>([
 	'image/jpeg',
 	'image/png',
@@ -129,3 +135,13 @@ export const SUPPORTED_MIME_TYPES: Set<string> = new Set<string>([
 	'image/avif',
 	'image/heic'
 ]);
+
+export const DAYS: Record<string, number> = {
+	'Mon': 1,
+	'Tue': 2,
+	'Wed': 3,
+	'Thu': 4,
+	'Fri': 5,
+	'Sat': 6,
+	'Sun': 0
+};

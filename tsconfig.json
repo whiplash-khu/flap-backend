@@ -15,7 +15,8 @@
 			"@handlers/*": ["source/handlers/*", "distribution/handlers/*"]
 		},
 		"typeRoots": ["source/types", "node_modules/@types"],
-		"removeComments": true
+		"removeComments": true,
+		"noErrorTruncation": true
 	},
 	"exclude": ["node_modules", "distribution/**/*"],
 	"include": ["source/**/*"]
