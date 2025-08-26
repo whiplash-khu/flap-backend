@@ -12,5 +12,4 @@ export default {
 	content: S.string()
 		.minLength(1)
 		.maxLength(160)
-		
 } satisfies Record<keyof Omit<Post, 'createdAt' | 'deletedAt'>, JSONSchema>;

@@ -5,6 +5,7 @@ import S from 'fluent-json-schema';
 import groupUserSchema from '@schemas/groupUser';
 import pagenationSchema from '@schemas/pagenation';
 import deleteGroupUserController from './deleteGroupUser.controller';
+import groupUserAttendanceModule from './attendance/groupUserAttendance.module';
 
 export default new Module(':groupId/users', [
 	{
@@ -40,4 +41,4 @@ export default new Module(':groupId/users', [
 				.prop('userId', groupUserSchema['userId'].required())
 		}
 	}
-]);
+], [groupUserAttendanceModule]);

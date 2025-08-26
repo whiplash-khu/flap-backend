@@ -1,8 +1,10 @@
 import { Insertable, Kysely, OnConflictBuilder, OnConflictUpdateBuilder, PostgresDialect, sql } from 'kysely';
 import { Database, Tag, TagTable } from './type';
-import { Pool } from 'pg';
+import { Pool, types } from 'pg';
 import { randomBytes } from 'crypto';
 import { S3Client } from '@aws-sdk/client-s3';
+
+types.setTypeParser(types['builtins']['INT8'], Number.parseInt);
 
 export const kysely: Kysely<Database> = new Kysely<Database>({
 	dialect: new PostgresDialect({
