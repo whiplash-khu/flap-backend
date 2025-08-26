@@ -30,7 +30,7 @@ export default function (request: FastifyRequest<{
 					}
 
 					if(groupWithUser['userId'] === null) {
-						throw new Unauthorized('User must be in group');
+						throw new NotFound('User must be in group');
 					}
 
 					if(groupWithUser['userId'] !== request['userId'] && request['params']['userId'] !== request['userId']) {
