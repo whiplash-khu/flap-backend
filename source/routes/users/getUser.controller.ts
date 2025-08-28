@@ -10,12 +10,22 @@ export default function (request: FastifyRequest<{
 	};
 }>, reply: FastifyReply): Promise<void> {
 	return kysely.selectFrom('user')
-		.select(['user.media_id as mediaId', 'user.name', 'user.school'])
+		.select([
+			'user.media_id as mediaId',
+			'user.name',
+			'user.school'
+		])
 		.$if(request['userId'] === request['params']['userId'], function (queryBuilder: SelectQueryBuilder<Database, 'user', Pick<User, 'name' | 'school' | 'mediaId'>>): typeof queryBuilder {
-			return queryBuilder.select(['user.email', 'user.birth_at as birthAt']);
+			return queryBuilder.select([
+				'user.email',
+				'user.birth_at as birthAt'
+			]);
 		})
 		.innerJoin('media', 'user.media_id', 'media.id')
-		.select(['media.hash', 'media.type'])
+		.select([
+			'media.hash',
+			'media.type'
+		])
 		.where('user.id', '=', request['params']['userId'])
 		.where('user.deleted_at', 'is', null)
 		.executeTakeFirst()

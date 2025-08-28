@@ -29,7 +29,10 @@ export default function (request: FastifyRequest<{
 			let media: Pick<Media, 'hash' | 'type'> | undefined;
 
 			return (shouldUpdatePassword ? transaction.selectFrom('user')
-				.select(['password', 'email'])
+				.select([
+					'password',
+					'email'
+				])
 				.where('id', '=', request['params']['userId'])
 				.executeTakeFirst()
 				.then(function (_user?: Pick<User, 'password' | 'email'>): Promise<string> {
@@ -56,7 +59,10 @@ export default function (request: FastifyRequest<{
 					}
 
 					return kysely.selectFrom('media')
-						.select(['hash', 'type'])
+						.select([
+							'hash',
+							'type'
+						])
 						.where('id', '=', request['body']['mediaId'] as number)
 						.executeTakeFirst();
 				})

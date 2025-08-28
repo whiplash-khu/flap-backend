@@ -16,7 +16,10 @@ export default function (request: FastifyRequest<{
 	}
 
 	return kysely.selectFrom('chat')
-		.select(['chat.id', 'chat.name'])
+		.select([
+			'chat.id',
+			'chat.name'
+		])
 		.innerJoin('chat_user', 'chat.id', 'chat_user.chat_id')
 		.where('chat_user.user_id', '=', request['userId'])
 		.$if(shouldCheckUserIds, function (queryBuilder: SelectQueryBuilder<Database, "chat", Pick<Chat, 'id' | 'name'>>): typeof queryBuilder {

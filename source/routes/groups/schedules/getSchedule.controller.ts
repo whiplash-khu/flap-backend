@@ -33,7 +33,14 @@ export default function (request: FastifyRequest<{
 					}
 
 					return transaction.selectFrom('schedule')
-						.select(['name', 'start_at as startAt', 'end_at as endAt', 'address', 'place', 'description'])
+						.select([
+							'name',
+							'start_at as startAt',
+							'end_at as endAt',
+							'address',
+							'place',
+							'description'
+						])
 						.where('group_id', '=', request['params']['groupId'])
 						.where('id', '=', request['params']['scheduleId'])
 						.executeTakeFirst();

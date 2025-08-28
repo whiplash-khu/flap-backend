@@ -17,7 +17,10 @@ export default function (request: FastifyRequest<{
 
 			return transaction.selectFrom('user_lost_password')
 				.innerJoin('user', 'user_lost_password.user_id', 'user.id')
-				.select(['user.id', 'user.email'])
+				.select([
+					'user.id',
+					'user.email'
+				])
 				.where('user_lost_password.token', '=', request['body']['token'])
 				.where('user_lost_password.created_at', '>', getTimestamp(getPreciseEpoch() - 43200))
 				.executeTakeFirst()

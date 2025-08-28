@@ -101,7 +101,10 @@ export default function (request: FastifyRequest<{
 							sql<boolean>`max((user_id = ${request['userId']})::integer)::boolean`.as('isReacted')
 						])
 						.where('post_id', 'in', postIds)
-						.groupBy(['post_id', 'emoji'])
+						.groupBy([
+							'post_id',
+							'emoji'
+						])
 						.orderBy('post_id', 'desc')
 						.execute();
 				})

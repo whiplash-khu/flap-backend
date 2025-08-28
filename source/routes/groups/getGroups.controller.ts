@@ -16,9 +16,18 @@ export default function (request: FastifyRequest<{
 			})[] = [];
 
 			return transaction.selectFrom('group')
-				.select(['group.id', 'group.media_id as mediaId', 'group.name', 'group.start_at as startAt', 'group.created_at as createdAt'])
+				.select([
+					'group.id',
+					'group.media_id as mediaId',
+					'group.name',
+					'group.start_at as startAt',
+					'group.created_at as createdAt'
+				])
 				.innerJoin('media', 'group.media_id', 'media.id')
-				.select(['media.hash', 'media.type'])
+				.select([
+					'media.hash',
+					'media.type'
+				])
 				.where('group.deleted_at', 'is', null)
 				.$if(typeof request['query']['index'] === 'number', function (queryBulder: SelectQueryBuilder<Database, 'group' | 'media', Pick<Group & Media, 'id' | 'name' | 'startAt' | 'createdAt' | 'mediaId' | 'hash' | 'type'>>): typeof queryBulder {
 					return queryBulder.where('group.id', '<', request['query']['index'] as number);
@@ -60,7 +69,10 @@ export default function (request: FastifyRequest<{
 							.orderBy(sql`array_position(array[${sql.raw(groupIds.join(','))}],group_id)`);
 						})
 						.selectFrom('_tag')
-						.select(['_tag.name', '_tag.groupId'])
+						.select([
+							'_tag.name',
+							'_tag.groupId'
+						])
 						.where("_tag.rowNumber", '<', 4)
 						.execute();
 				})

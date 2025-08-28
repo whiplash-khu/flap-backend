@@ -12,7 +12,10 @@ export default function (request: FastifyRequest<{
 	let user: Pick<User, 'id' | 'password'>;
 
 	return kysely.selectFrom('user')
-		.select(['id', 'password'])
+		.select([
+			'id',
+			'password'
+		])
 		.where('email', '=', request['body']['email'])
 		.where('deleted_at', 'is', null)
 		.executeTakeFirst()

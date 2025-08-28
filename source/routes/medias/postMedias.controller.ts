@@ -25,7 +25,10 @@ export default function (request: FastifyRequest, reply: FastifyReply): Promise<
 							hash: sql`excluded.hash`
 						});
 				})
-				.returning(['id', sql<number>`extract(epoch from created_at)`.as('createdAt')])
+				.returning([
+					'id',
+					sql<number>`extract(epoch from created_at)`.as('createdAt')
+				])
 				.executeTakeFirstOrThrow()
 				.then(function (media: Pick<Media, 'id'> & {
 					createdAt: number;

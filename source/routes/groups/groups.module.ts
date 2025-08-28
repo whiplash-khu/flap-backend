@@ -3,7 +3,7 @@ import postGroupsController from './postGroups.controller';
 import S from 'fluent-json-schema';
 import groupSchema from '@schemas/group';
 import groupQuestionSchema from '@schemas/groupQuestion';
-import pagenationSchema from '@schemas/pagenation'
+import pagenationSchema from '@schemas/pagenation';
 import getGroupsController from './getGroups.controller';
 import getGroupController from './getGroup.controller';
 import patchGroupController from './patchGroup.controller';

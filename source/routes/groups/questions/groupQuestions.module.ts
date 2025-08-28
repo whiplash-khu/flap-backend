@@ -1,6 +1,6 @@
 import Module from '@library/module';
 import S from 'fluent-json-schema';
-import getGroupQuestionsController from './getGroupQuestions.controller'
+import getGroupQuestionsController from './getGroupQuestions.controller';
 import groupQuestionSchema from '@schemas/groupQuestion';
 
 export default new Module(':groupId/questions', [
