@@ -14,20 +14,12 @@ export default function (request: FastifyRequest<{
 		.setAccessMode('read only')		 
 		.setIsolationLevel('repeatable read')
 		.execute(function (transaction: Transaction<Database>): Promise<void> {
-      const forms: ({
-        id: Form['id'];
-        createdAt: Form['createdAt'];
-        user: Pick<User, 'id' | 'name'> & {
-          media: Pick<Media, 'id' | 'hash' | 'type'>;
-        };
-      })[] = [];
-
       return transaction.selectFrom('group')
         .select('group.user_id as userId')
         .where('group.id', '=', request['params']['groupId'])
         .where('group.deleted_at', 'is', null)
         .executeTakeFirst()
-        .then(function (group?: Pick<Group, 'userId'>) {
+        .then(function (group?: Pick<Group, 'userId'>): Promise<Pick<Form & User & Media, 'id' | 'createdAt' | 'userId' | 'name' | 'mediaId' | 'hash' | 'type'>[]> {
           if(group === undefined) {
             throw new NotFound('Params["groupId"] must be valid');
           }
@@ -37,26 +29,38 @@ export default function (request: FastifyRequest<{
           }
 
 					return transaction.selectFrom('form')
-						.innerJoin('user', 'form.user_id', 'user.id')
-						.innerJoin('media', 'user.media_id', 'media.id')
-            .select([
+						.select([
               'form.id as id',
               'form.created_at as createdAt',
+						])
+						.innerJoin('user', 'form.user_id', 'user.id')
+						.select([
               'user.id as userId',
               'user.name as name',
+						])
+						.innerJoin('media', 'user.media_id', 'media.id')
+            .select([
               'media.id as mediaId',
               'media.hash as hash',
               'media.type as type'
             ])
 						.where('form.group_id', '=', request['params']['groupId'])
-						.$if(typeof request['query']['index'] === 'number', function (queryBuilder: SelectQueryBuilder<Database, 'form' | 'user' | 'media', Pick<Form & User & Media, 'id' | 'createdAt' | 'userId' | 'name' | 'mediaId' | 'hash' | 'type'>>): SelectQueryBuilder<Database, 'form' | 'user' | 'media', Pick<Form & User & Media, 'id' | 'createdAt' | 'userId' | 'name' | 'mediaId' | 'hash' | 'type'>> {
+						.$if(typeof request['query']['index'] === 'number', function (queryBuilder: SelectQueryBuilder<Database, 'form' | 'user' | 'media', Pick<Form & User & Media, 'id' | 'createdAt' | 'userId' | 'name' | 'mediaId' | 'hash' | 'type'>>): typeof queryBuilder {
 							return queryBuilder.where('form.id', '<', request['query']['index'] as number);
 						}) 
             .orderBy('form.id', 'desc')
             .limit(request['query']['size'])
 						.execute();
 				})
-        .then(function (_forms: Pick<Form & User & Media, 'id' | 'createdAt' | 'userId' | 'name' | 'mediaId' | 'hash' | 'type'>[]){
+        .then(function (_forms: Pick<Form & User & Media, 'id' | 'createdAt' | 'userId' | 'name' | 'mediaId' | 'hash' | 'type'>[]): void {
+					const forms: ({
+						id: Form['id'];
+						createdAt: Form['createdAt'];
+						user: Pick<User, 'id' | 'name'> & {
+							media: Pick<Media, 'id' | 'hash' | 'type'>;
+						};
+					})[] = [];
+
           for(let i: number = 0; i < _forms['length']; i++) {
             forms.push({
               id: _forms[i]['id'],
@@ -70,8 +74,9 @@ export default function (request: FastifyRequest<{
                   type: _forms[i]['type']
                 }
               }
-            })
+            });
           }
+
           reply.send(forms);
         });
 		});
