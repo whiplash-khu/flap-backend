@@ -2,7 +2,7 @@ import { encryptPbkdf2 } from '@library/crypto';
 import { kysely } from '@library/database';
 import { BadRequest } from '@library/httpError';
 import { Database, User, Verification } from '@library/type';
-import { getEpoch, getTimestamp } from '@library/time';
+import { getPreciseEpoch, getTimestamp } from '@library/time';
 import { FastifyReply, FastifyRequest } from 'fastify';
 import { Transaction } from 'kysely';
 
@@ -17,7 +17,7 @@ export default function (request: FastifyRequest<{
 
 			return transaction.deleteFrom('verification')
 				.where('token', '=', request['body']['token'])
-				.where('verification.created_at', '>', getTimestamp(getEpoch() - 43200))
+				.where('verification.created_at', '>', getTimestamp(getPreciseEpoch() - 43200))
 				.returning('email')
 				.executeTakeFirst()
 				.then(function (verification?: Pick<Verification, 'email'>): Promise<string> {

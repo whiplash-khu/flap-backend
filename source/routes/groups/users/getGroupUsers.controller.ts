@@ -37,7 +37,7 @@ export default function (request: FastifyRequest<{
 						.select(['media.hash', 'media.type'])
 						.where('group_user.group_id', '=', request['params']['groupId'])
 						.where('user.deleted_at', 'is', null)
-						.$if(typeof request['query']['index'] === 'number', function (queryBulder: SelectQueryBuilder<Database, "group_user" | "media" | "user", Pick<User & Media, 'id' | 'name' | 'school' | 'mediaId' | 'hash' | 'type'>>): typeof queryBulder {
+						.$if(typeof request['query']['index'] === 'number', function (queryBulder: SelectQueryBuilder<Database, 'group_user' | 'media' | 'user', Pick<User & Media, 'id' | 'name' | 'school' | 'mediaId' | 'hash' | 'type'>>): typeof queryBulder {
 							return queryBulder.where('group_user.id', '<', request['query']['index'] as number);
 						})
 						.limit(request['query']['size'])

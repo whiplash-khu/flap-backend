@@ -63,7 +63,7 @@ export default function (request: FastifyRequest<{
 							.executeTakeFirstOrThrow(),
 						transaction.insertInto('schedule_attendance')
 							.columns(['schedule_id', 'user_id', 'status'])
-							.expression(function (expressionBuilder: ExpressionBuilder<Database, "schedule_attendance">): SelectQueryBuilder<Database, 'schedule', Omit<ScheduleAttendance, 'id'>>  {
+							.expression(function (expressionBuilder: ExpressionBuilder<Database, 'schedule_attendance'>): SelectQueryBuilder<Database, 'schedule', Omit<ScheduleAttendance, 'id'>>  {
 								return expressionBuilder.selectFrom('schedule')
 									.select([
 										'id as scheduleId',

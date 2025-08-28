@@ -70,7 +70,7 @@ export const AES_INITIALIZE_VACTOR: Buffer = Buffer.from(process['env']['AES_INI
 
 export const PBKDF2_ITERATION: number = Number.parseInt(process['env']['PBKDF2_ITERATION'], 10);
 
-export const FILE_SIZE_LIMIT: number = Number.parseInt(process['env']['FILE_SIZE_LIMIT'] || "524300", 10);
+export const FILE_SIZE_LIMIT: number = Number.parseInt(process['env']['FILE_SIZE_LIMIT'] || '524300', 10);
 
 export const VERIFICATION_TEMPLATE: string = `<body style="margin:100px auto;width:540px;border-top:4px solid #1F2F56;padding:0 4px">
 	<header style="margin:32px 0">

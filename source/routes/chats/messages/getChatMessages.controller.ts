@@ -39,7 +39,7 @@ export default function(request: FastifyRequest<{
 						.innerJoin('media', 'user.media_id', 'media.id')
 						.select(['media.hash', 'media.type'])
 						.where('chat_id', '=', request['params']['chatId'])
-						.$if(typeof request['query']['index'] === 'number', function (queryBulder: SelectQueryBuilder<Database, "chat_message" | "media" | "user", Pick<ChatMessage & User & Media, 'id' | 'userId' | 'content' | 'createdAt' | 'name' | 'mediaId' | 'hash' | 'type'>>): typeof queryBulder {
+						.$if(typeof request['query']['index'] === 'number', function (queryBulder: SelectQueryBuilder<Database, 'chat_message' | 'media' | 'user', Pick<ChatMessage & User & Media, 'id' | 'userId' | 'content' | 'createdAt' | 'name' | 'mediaId' | 'hash' | 'type'>>): typeof queryBulder {
 							return queryBulder.where('chat_message.id', '<', request['query']['index'] as number);
 						})
 						.orderBy('chat_message.id', 'desc')

@@ -26,10 +26,14 @@ export function parseTime(time: string): number {
 }
 
 export function getEpoch(): number {
+	return Math.trunc((performance['timeOrigin'] + performance.now()) / 1000);
+}
+
+export function getPreciseEpoch(): number {
 	return Math.trunc((performance['timeOrigin'] + performance.now()) * 1000) / 1000000;
 }
 
-export function getTimestamp(time: number = getEpoch()): RawBuilder<Date> {
+export function getTimestamp(time: number = getPreciseEpoch()): RawBuilder<Date> {
 	return sql<Date>`to_timestamp(${time})`;
 }
 

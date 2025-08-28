@@ -20,7 +20,7 @@ export default function (request: FastifyRequest<{
 				.innerJoin('media', 'group.media_id', 'media.id')
 				.select(['media.hash', 'media.type'])
 				.where('group.deleted_at', 'is', null)
-				.$if(typeof request['query']['index'] === 'number', function (queryBulder: SelectQueryBuilder<Database, "group" | "media", Pick<Group & Media, 'id' | 'name' | 'startAt' | 'createdAt' | 'mediaId' | 'hash' | 'type'>>): typeof queryBulder {
+				.$if(typeof request['query']['index'] === 'number', function (queryBulder: SelectQueryBuilder<Database, 'group' | 'media', Pick<Group & Media, 'id' | 'name' | 'startAt' | 'createdAt' | 'mediaId' | 'hash' | 'type'>>): typeof queryBulder {
 					return queryBulder.where('group.id', '<', request['query']['index'] as number);
 				})
 				.orderBy('group.id', 'desc')
@@ -48,7 +48,7 @@ export default function (request: FastifyRequest<{
 						});
 					}
 
-					return transaction.with('_tag', function (queryCreator: QueryCreator<Database>): SelectQueryBuilder<Database, "tag" | "group_tag", Pick<Tag & GroupTag, 'name' | 'groupId'> & {
+					return transaction.with('_tag', function (queryCreator: QueryCreator<Database>): SelectQueryBuilder<Database, 'tag' | 'group_tag', Pick<Tag & GroupTag, 'name' | 'groupId'> & {
 						rowNumber: number;
 					}> {
 						return queryCreator.selectFrom('tag')

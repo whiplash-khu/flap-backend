@@ -1,7 +1,7 @@
 import { PutObjectCommand, PutObjectCommandOutput } from '@aws-sdk/client-s3';
 import { kysely, s3 } from '@library/database';
 import { Database, Media } from '@library/type';
-import { getEpoch, getTimestamp } from '@library/time';
+import { getPreciseEpoch, getTimestamp } from '@library/time';
 import { FastifyReply, FastifyRequest } from 'fastify';
 import { OnConflictBuilder, OnConflictUpdateBuilder, sql, Transaction } from 'kysely';
 
@@ -11,7 +11,7 @@ export default function (request: FastifyRequest, reply: FastifyReply): Promise<
 		.setIsolationLevel('serializable')
 		.execute(function (transaction: Transaction<Database>): Promise<void> {
 			let mediaId: Media['id'];
-			const now: number = getEpoch();
+			const now: number = getPreciseEpoch();
 
 			return transaction.insertInto('media')
 				.values({

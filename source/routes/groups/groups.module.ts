@@ -89,4 +89,4 @@ export default new Module('groups', [
 				.prop('groupId', groupSchema['id'].required())
 		}
 	}
-], [postsModule, groupUsersModule, groupUsersModule, groupQuestionsModule, schedulesModule]);
+], [postsModule, groupFormsModule, groupUsersModule, groupQuestionsModule, schedulesModule]);

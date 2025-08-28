@@ -47,7 +47,7 @@ export default function (request: FastifyRequest<{
 					if(typeof request['body']['account'] === 'string') {
 						account = encryptAes(request['body']['account']);
 					}
-					
+
 					return transaction.updateTable('fee')
 						.set({
 							name: request['body']['name'],
