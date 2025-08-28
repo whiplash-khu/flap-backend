@@ -30,7 +30,7 @@ export default function (request: FastifyRequest<{
 					}
 
 					if(groupWithUser['userId'] === null) {
-						throw new Unauthorized('User must be in group');
+						throw new NotFound('User must be in group');
 					}
 
 					if(groupWithUser['userId'] !== request['userId'] && request['params']['userId'] !== request['userId']) {
@@ -43,7 +43,7 @@ export default function (request: FastifyRequest<{
 							.where('user_id', '=', request['params']['userId'])
 							.executeTakeFirstOrThrow(),
 						transaction.deleteFrom('schedule_attendance')
-							.where('schedule_id', 'in', function (expressionBuilder: ExpressionBuilder<Database, "schedule_attendance">): SelectQueryBuilder<Database, "schedule_attendance" | "schedule", Pick<ScheduleAttendance, 'id'>> {
+							.where('schedule_id', 'in', function (expressionBuilder: ExpressionBuilder<Database, 'schedule_attendance'>): SelectQueryBuilder<Database, 'schedule_attendance' | 'schedule', Pick<ScheduleAttendance, 'id'>> {
 								return expressionBuilder.selectFrom('schedule')
 									.select('id')
 									.where('group_id', '=', request['params']['groupId'])

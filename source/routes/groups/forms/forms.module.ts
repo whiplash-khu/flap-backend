@@ -1,8 +1,8 @@
 import Module from '@library/module';
 import S from 'fluent-json-schema';
-import postGroupFormsController from './postGroupForms.controller'
-import getGroupFormsController from './getGroupForms.controller'
-import getGroupFormController from './getGroupForm.controller'
+import postFormsController from './postForms.controller';
+import getFormsController from './getForms.controller';
+import getFormController from './getForm.controller';
 import formSchema from '@schemas/form';
 import formAnswerSchema from '@schemas/formAnswer';
 import pagenationSchema from '@schemas/pagenation';
@@ -11,7 +11,7 @@ export default new Module(':groupId/forms', [
   {
     method: 'POST',
     url: '',
-    handler: postGroupFormsController,
+    handler: postFormsController,
     schema: {
       params: S.object()
         .prop('groupId', formSchema['groupId'].required()),
@@ -19,14 +19,13 @@ export default new Module(':groupId/forms', [
         .prop('content', S.array()
           .items(formAnswerSchema['content'])
           .minItems(1)
-          .uniqueItems(true)
           .required())
     }
   },
   {
     method: 'GET',
     url: '',
-    handler: getGroupFormsController,
+    handler: getFormsController,
     schema: {
       querystring: S.object()
         .prop('index', pagenationSchema['index'])
@@ -38,7 +37,7 @@ export default new Module(':groupId/forms', [
   {
     method: 'GET',
     url: ':formId',
-    handler: getGroupFormController,
+    handler: getFormController,
     schema: {
       params: S.object()
         .prop('groupId', formSchema['groupId'].required())

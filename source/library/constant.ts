@@ -70,7 +70,7 @@ export const AES_INITIALIZE_VACTOR: Buffer = Buffer.from(process['env']['AES_INI
 
 export const PBKDF2_ITERATION: number = Number.parseInt(process['env']['PBKDF2_ITERATION'], 10);
 
-export const FILE_SIZE_LIMIT: number = Number.parseInt(process['env']['FILE_SIZE_LIMIT'] || "524300", 10);
+export const FILE_SIZE_LIMIT: number = Number.parseInt(process['env']['FILE_SIZE_LIMIT'] || '524300', 10);
 
 export const VERIFICATION_TEMPLATE: string = `<body style="margin:100px auto;width:540px;border-top:4px solid #1F2F56;padding:0 4px">
 	<header style="margin:32px 0">
@@ -145,3 +145,31 @@ export const DAYS: Record<string, number> = {
 	'Sat': 6,
 	'Sun': 0
 };
+
+export const enum Banks {
+	KDB산업은행 = 2,
+	IBK기업은행 = 3,
+	KB국민은행 = 4,
+	수협은행 = 7,
+	NH농협은행 = 11,
+	우리은행 = 20,
+	SC은행 = 23,
+	씨티은행 = 27,
+	대구은행 = 31,
+	부산은행 = 32,
+	광주은행 = 34,
+	제주은행 = 35,
+	전북은행 = 37,
+	경남은행 = 39,
+	MG새마을금고 = 45,
+	신협 = 48,
+	저축은행 = 50,
+	산림조합 = 64,
+	우체국 = 71,
+	하나은행 = 81,
+	신한은행 = 88,
+	케이뱅크 = 89,
+	카카오뱅크 = 90,
+	토스뱅크 = 92,
+	SBI저축은행 = 103
+}

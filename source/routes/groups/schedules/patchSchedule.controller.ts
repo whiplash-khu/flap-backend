@@ -40,14 +40,14 @@ export default function (request: FastifyRequest<{
 				.select('schedule.id as scheduleId')
 				.$if(shouldUpdateStartAt && !shouldUpdateEndAt, function (queryBuilder: SelectQueryBuilder<Omit<Database, 'schedule'> & {
 					schedule: Nullable<ScheduleTable>;
-				}, "group" | "schedule", Pick<Group, 'userId'> & {
+				}, 'group' | 'schedule', Pick<Group, 'userId'> & {
 					scheduleId: Schedule['id'] | null;
 				}>): typeof queryBuilder {
 					return queryBuilder.select(sql<number>`extract(epoch from schedule.end_at)`.as('endAt'));
 				})
 				.$if(shouldUpdateEndAt && !shouldUpdateStartAt, function (queryBuilder: SelectQueryBuilder<Omit<Database, 'schedule'> & {
 					schedule: Nullable<ScheduleTable>;
-				}, "group" | "schedule", Pick<Group, 'userId'> & {
+				}, 'group' | 'schedule', Pick<Group, 'userId'> & {
 					scheduleId: Schedule['id'] | null;
 				}>): typeof queryBuilder {
 					return queryBuilder.select(sql<number>`extract(epoch from schedule.start_at)`.as('startAt'));

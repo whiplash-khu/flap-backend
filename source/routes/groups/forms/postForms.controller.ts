@@ -61,7 +61,7 @@ export default function (request: FastifyRequest<{
 				})
 				.then(function (form: Pick<Form, 'id'>): Promise<InsertResult> {
 					const groupFormAnswerInserts: Insertable<FormAnswerTable>[] = [];
-					
+
 					formId = form['id'];
 
 					for(let i: number = 0; i < request['body']['answers']['length']; i++) {

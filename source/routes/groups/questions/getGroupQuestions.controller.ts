@@ -23,13 +23,16 @@ export default function (request: FastifyRequest<{
           }
 
           return transaction.selectFrom('group_question')
-            .select(['id', 'content'])
+            .select([
+							'id',
+							'content'
+						])
             .where('group_question.group_id', '=', request['params']['groupId'])
             .orderBy('id', 'asc')
             .execute();
         })
-        .then(function (groupQuestions: Array<Pick<GroupQuestion, 'id' | 'content'>>): void {
-          reply.send(groupQuestions);
+        .then(function (questions: Array<Pick<GroupQuestion, 'id' | 'content'>>): void {
+          reply.send(questions);
         });
 		});
 }

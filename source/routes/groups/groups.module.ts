@@ -3,16 +3,17 @@ import postGroupsController from './postGroups.controller';
 import S from 'fluent-json-schema';
 import groupSchema from '@schemas/group';
 import groupQuestionSchema from '@schemas/groupQuestion';
-import pagenationSchema from '@schemas/pagenation'
+import pagenationSchema from '@schemas/pagenation';
 import getGroupsController from './getGroups.controller';
 import getGroupController from './getGroup.controller';
 import patchGroupController from './patchGroup.controller';
 import deleteGroupController from './deleteGroup.controller';
 import postsModule from './posts/posts.module';
 import groupUsersModule from './users/groupUsers.module';
-import groupFormsModule from './forms/forms.module';
-import groupQuestionsModule from './questions/questions.module';
+import formsModule from './forms/forms.module';
+import groupQuestionsModule from './questions/groupQuestions.module';
 import schedulesModule from './schedules/schedules.module';
+import feesModule from './fees/fees.module';
 
 export default new Module('groups', [
 	{
@@ -89,4 +90,4 @@ export default new Module('groups', [
 				.prop('groupId', groupSchema['id'].required())
 		}
 	}
-], [postsModule, groupUsersModule, groupUsersModule, groupQuestionsModule, schedulesModule]);
+], [postsModule, feesModule, formsModule, groupUsersModule, groupQuestionsModule, schedulesModule]);

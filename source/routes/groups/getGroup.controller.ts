@@ -28,9 +28,19 @@ export default function (request: FastifyRequest<{
 					}
 
 					return transaction.selectFrom('group')
-						.select(['group.id', 'group.name', 'group.description', 'group.start_at as startAt', 'group.end_at as endAt'])
+						.select([
+							'group.id',
+							'group.name',
+							'group.description',
+							'group.start_at as startAt',
+							'group.end_at as endAt'
+						])
 						.$if(typeof groupWithUser['userId'] === 'number', function (queryBulder: SelectQueryBuilder<Database, "group", Pick<Group, 'id' | 'name' | 'description' | 'startAt' | 'endAt'>>): typeof queryBulder {
-							return queryBulder.select(['group.user_id as userId', 'group.introduction', 'group.created_at as createdAt']);
+							return queryBulder.select([
+								'group.user_id as userId',
+								'group.introduction',
+								'group.created_at as createdAt'
+							]);
 						})
 						.where('group.id', '=', request['params']['groupId'])
 						// repeatable read

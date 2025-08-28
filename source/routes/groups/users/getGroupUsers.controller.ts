@@ -32,12 +32,20 @@ export default function (request: FastifyRequest<{
 
 					return transaction.selectFrom('group_user')
 						.innerJoin('user', 'group_user.user_id', 'user.id')
-						.select(['user.id', 'user.media_id as mediaId', 'user.name', 'user.school'])
+						.select([
+							'user.id',
+							'user.media_id as mediaId',
+							'user.name',
+							'user.school'
+						])
 						.innerJoin('media', 'user.media_id', 'media.id')
-						.select(['media.hash', 'media.type'])
+						.select([
+							'media.hash',
+							'media.type'
+						])
 						.where('group_user.group_id', '=', request['params']['groupId'])
 						.where('user.deleted_at', 'is', null)
-						.$if(typeof request['query']['index'] === 'number', function (queryBulder: SelectQueryBuilder<Database, "group_user" | "media" | "user", Pick<User & Media, 'id' | 'name' | 'school' | 'mediaId' | 'hash' | 'type'>>): typeof queryBulder {
+						.$if(typeof request['query']['index'] === 'number', function (queryBulder: SelectQueryBuilder<Database, 'group_user' | 'media' | 'user', Pick<User & Media, 'id' | 'name' | 'school' | 'mediaId' | 'hash' | 'type'>>): typeof queryBulder {
 							return queryBulder.where('group_user.id', '<', request['query']['index'] as number);
 						})
 						.limit(request['query']['size'])

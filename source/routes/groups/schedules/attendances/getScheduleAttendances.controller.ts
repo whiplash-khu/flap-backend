@@ -38,9 +38,13 @@ export default function (request: FastifyRequest<{
 					}
 
 					return transaction.selectFrom('schedule_attendance')
-						.select(['schedule_attendance.id', 'schedule_attendance.user_id as userId', 'schedule_attendance.status'])
+						.select([
+							'schedule_attendance.id',
+							'schedule_attendance.user_id as userId',
+							'schedule_attendance.status'
+						])
 						.innerJoin('user', 'schedule_attendance.user_id', 'user.id')
-						.select(['user.name'])
+						.select('user.name')
 						.where('schedule_id', '=', request['params']['scheduleId'])
 						.$if(typeof request['query']['index'] === 'number', function (queryBulder: SelectQueryBuilder<Database, 'schedule_attendance' | 'user', Pick<ScheduleAttendance & User, 'id' | 'userId' | 'status' | 'name'>>): typeof queryBulder {
 							return queryBulder.where('schedule_attendance.id', '<', request['query']['index'] as number);
