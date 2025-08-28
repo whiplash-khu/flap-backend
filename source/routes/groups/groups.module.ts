@@ -10,7 +10,8 @@ import patchGroupController from './patchGroup.controller';
 import deleteGroupController from './deleteGroup.controller';
 import postsModule from './posts/posts.module';
 import groupUsersModule from './users/groupUsers.module';
-import groupFormsModule from './forms/forms.module'
+import groupFormsModule from './forms/forms.module';
+import groupQuestionsModule from './questions/questions.module';
 import schedulesModule from './schedules/schedules.module';
 
 export default new Module('groups', [
@@ -88,4 +89,4 @@ export default new Module('groups', [
 				.prop('groupId', groupSchema['id'].required())
 		}
 	}
-], [groupFormsModule, postsModule, groupUsersModule, schedulesModule]);
+], [postsModule, groupUsersModule, groupUsersModule, groupQuestionsModule, schedulesModule]);
