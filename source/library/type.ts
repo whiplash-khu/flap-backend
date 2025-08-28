@@ -147,13 +147,17 @@ export interface ScheduleAttendanceTable {
 export interface FeeTable {
 	id: GeneratedAlways<number>;
 	group_id: Unupdateable<number>;
+	name: ColumnType<string>;
+	bank: ColumnType<number>;
 	account: ColumnType<string>;
 	amount: ColumnType<number>;
 	end_at: ColumnType<Date>;
 	created_at: GeneratedAlways<Date>;
+	deleted_at: Uninsertable<Date | null>;
 }
 
 export interface FeeSubmissionTable {
+	id: GeneratedAlways<number>;
 	fee_id: Unupdateable<number>;
 	user_id: Unupdateable<number>;
 	created_at: GeneratedAlways<Date>;
