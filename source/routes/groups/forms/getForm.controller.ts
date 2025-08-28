@@ -87,7 +87,10 @@ export default function (request: FastifyRequest<{
 					};
 
           return transaction.selectFrom('form_answer')
-            .select(['id', 'content'])
+            .select([
+							'id',
+							'content'
+						])
             .where('form_answer.form_id', '=', request['params']['formId'])
             .orderBy('id', 'asc')
             .execute();
