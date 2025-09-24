@@ -8,14 +8,17 @@ import usersModule from './users/users.module';
 import chatsModule from './chats/chats.module';
 import groupsModule from './groups/groups.module';
 import mediasModule from './medias/medias.module';
+import webSocketHandler from '@handlers/websocket';
 
 export default new Module('/', [
 	{
 		method: 'GET',
 		url: '',
 		handler: getRootController,
+		// @ts-expect-error
+		wsHandler: webSocketHandler,
 		excludePreHandler: true
-	}, 
+	},
 	{
 		method: 'POST',
 		url: 'coffee',
