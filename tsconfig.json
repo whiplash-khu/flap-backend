@@ -12,7 +12,8 @@
 		"paths": {
 			"@library/*": ["source/library/*", "distribution/library/*"],
 			"@schemas/*": ["source/schemas/*", "distribution/schemas/*"],
-			"@handlers/*": ["source/handlers/*", "distribution/handlers/*"]
+			"@handlers/*": ["source/handlers/*", "distribution/handlers/*"],
+			"@events/*": ["source/events/*", "distribution/events/*"]
 		},
 		"typeRoots": ["source/types", "node_modules/@types"],
 		"removeComments": true,
