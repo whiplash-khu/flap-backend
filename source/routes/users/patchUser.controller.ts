@@ -10,7 +10,7 @@ export default function (request: FastifyRequest<{
 	Params: {
 		userId: User['id'];
 	};
-	Body: Partial<Pick<User, 'password' | 'name' | 'birthAt' | 'school' | 'mediaId'> & {
+	Body: Partial<Pick<User, 'password' | 'name' | 'birthdate' | 'isMale' | 'school' | 'admissionYear' | 'mediaId'> & {
 		previousPassword: User['password'];
 	}>;
 }>, reply: FastifyReply): Promise<void> {
@@ -54,6 +54,10 @@ export default function (request: FastifyRequest<{
 				.then(function (_encryptedPassword?: string): Promise<Pick<Media, 'hash' | 'type'> | undefined> | undefined {
 					encryptedPassword = _encryptedPassword;
 
+					if(typeof request['body']['admissionYear'] === 'number' && request['body']['admissionYear'] > (new Date()).getUTCFullYear()) {
+						throw new BadRequest('Body["admissionYear"] must not be later than now');
+					}
+
 					if(!shouldUpdateMediaId) {
 						return;
 					}
@@ -77,8 +81,10 @@ export default function (request: FastifyRequest<{
 						.set({
 							password: encryptedPassword,
 							name: request['body']['name'],
-							birth_at: request['body']['birthAt'],
+							birthdate: request['body']['birthdate'],
+							is_male: request['body']['isMale'],
 							school: request['body']['school'],
+							admission_year: request['body']['admissionYear'],
 							media_id: request['body']['mediaId']
 						})
 						.where('id', '=', request['params']['userId'])
@@ -91,8 +97,10 @@ export default function (request: FastifyRequest<{
 							uid: request['params']['userId']
 						}, encryptedPassword as string) : undefined,
 						name: request['body']['name'],
-						birthAt: request['body']['birthAt'],
+						birthdate: request['body']['birthdate'],
+						is_male: request['body']['isMale'],
 						school: request['body']['school'],
+						admission_year: request['body']['admissionYear'],
 						media: media
 					});
 				});

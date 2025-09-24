@@ -17,8 +17,10 @@ export default new Module('users', [
 			body: S.object()
 				.prop('password', userSchema['password'].required())
 				.prop('name', userSchema['name'].required())
-				.prop('birthAt', userSchema['birthAt'].required())
+				.prop('birthdate', userSchema['birthdate'].required())
+				.prop('isMale', userSchema['isMale'].required())
 				.prop('school', userSchema['school'].required())
+				.prop('admissionYear', userSchema['admissionYear'].required())
 				.prop('token', verificationSchema['token'].required())
 		}
 	}, {
@@ -40,8 +42,10 @@ export default new Module('users', [
 				.prop('previousPassword', userSchema['password'])
 				.prop('password', userSchema['password'])
 				.prop('name', userSchema['name'])
-				.prop('birthAt', userSchema['birthAt'])
+				.prop('birthdate', userSchema['birthdate'])
+				.prop('isMale', userSchema['isMale'])
 				.prop('school', userSchema['school'])
+				.prop('admissionYear', userSchema['admissionYear'])
 				.prop('mediaId', userSchema['mediaId'])
 				.anyOf([
 					S.object()
