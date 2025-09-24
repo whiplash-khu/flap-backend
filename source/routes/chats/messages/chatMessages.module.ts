@@ -1,22 +1,11 @@
 import Module from '@library/module';
 import S from 'fluent-json-schema';
-import postChatMessagesController from './postChatMessages.controller';
 import getChatMessagesController from './getChatMessages.controller';
 import chatMessageSchema from '@schemas/chatMessage';
 import pagenationSchema from '@schemas/pagenation';
 
 export default new Module(':chatId/messages', [
 	{
-		method: 'POST',
-		url: '',
-		handler: postChatMessagesController,
-		schema: {
-			params: S.object()
-				.prop('chatId', chatMessageSchema['chatId'].required()),
-			body: S.object()
-				.prop('content', chatMessageSchema['content'].required())
-		}
-	}, {
 		method: 'GET',
 		url: '',
 		handler: getChatMessagesController,

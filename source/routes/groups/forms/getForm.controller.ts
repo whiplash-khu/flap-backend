@@ -16,7 +16,7 @@ export default function (request: FastifyRequest<{
 		.setIsolationLevel('repeatable read')
 		.execute(function (transaction: Transaction<Database>): Promise<void> {
 			let form: Pick<Form, 'id' | 'createdAt'> & {
-				user: Pick<User, 'id' | 'name'> & {
+				user: Pick<User, 'id' | 'name' | 'school' | 'admissionYear' | 'birthdate' | 'isMale'> & {
 					media: Pick<Media, 'id' | 'hash' | 'type'>;
 				};
 			};
@@ -38,7 +38,11 @@ export default function (request: FastifyRequest<{
 				.select([
 					'user.id as _userId',
 					'user.media_id as mediaId',
-					'user.name as name'
+					'user.name as name',
+					'user.school',
+					'user.admission_year as admissionYear',
+					'user.birthdate',
+					'user.is_male as isMale'
 				])
 				.leftJoin('media', function (joinBuilder: JoinBuilder<Database, 'group' | 'form' | 'user' | 'media'>): typeof joinBuilder {
 					return joinBuilder
@@ -57,6 +61,10 @@ export default function (request: FastifyRequest<{
 					_userId: User['id'];
 					mediaId: User['mediaId'];
 					name: User['name'];
+					school: User['school'];
+					admissionYear: User['admissionYear'];
+					birthdate: User['birthdate'];
+					isMale: User['isMale'];
 					hash: Media['hash'];
 					type: Media['type'];
 				}>): Promise<Pick<FormAnswer, 'id' | 'content'>[]> {
@@ -74,14 +82,18 @@ export default function (request: FastifyRequest<{
 
 					form = {
 						id: groupWithForm['formId'],
-						createdAt: groupWithForm['createdAt'] as Date,
+						createdAt: groupWithForm['createdAt'] as Form['createdAt'],
 						user: {
-							id: groupWithForm['_userId'] as number,
-							name: groupWithForm['name'] as string,
+							id: groupWithForm['_userId'] as User['id'],
+							name: groupWithForm['name'] as User['name'],
+							school: groupWithForm['school'] as User['school'],
+							admissionYear: groupWithForm['admissionYear'] as User['admissionYear'],
+							birthdate: groupWithForm['birthdate'] as User['birthdate'],
+							isMale: groupWithForm['isMale'] as User['isMale'],
 							media: {
-								id: groupWithForm['mediaId'] as number,
-								hash: groupWithForm['hash'] as string,
-								type: groupWithForm['type'] as string
+								id: groupWithForm['mediaId'] as Media['id'],
+								hash: groupWithForm['hash'] as Media['hash'],
+								type: groupWithForm['type'] as Media['type']
 							}
 						}
 					};

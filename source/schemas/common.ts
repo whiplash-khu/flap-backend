@@ -14,4 +14,6 @@ export default {
 		.format('date'),
 	datetime: S.string()
 		.format('date-time'),
+	jsonWebToken: S.string()
+		.pattern(/(^[\w-]*\.[\w-]*\.[\w-]*$)/)
 } as const;

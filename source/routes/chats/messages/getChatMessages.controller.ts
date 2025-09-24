@@ -1,4 +1,4 @@
-import { kysely } from '@library/database';
+import { getOperator, kysely } from '@library/database';
 import { NotFound, Unauthorized } from '@library/httpError';
 import { Chat, ChatMessage, ChatUser, Database, Media, Pagenation, User } from '@library/type';
 import { FastifyRequest, FastifyReply } from 'fastify';
@@ -51,7 +51,7 @@ export default function(request: FastifyRequest<{
 						])
 						.where('chat_id', '=', request['params']['chatId'])
 						.$if(typeof request['query']['index'] === 'number', function (queryBulder: SelectQueryBuilder<Database, 'chat_message' | 'media' | 'user', Pick<ChatMessage & User & Media, 'id' | 'userId' | 'content' | 'createdAt' | 'name' | 'mediaId' | 'hash' | 'type'>>): typeof queryBulder {
-							return queryBulder.where('chat_message.id', '<', request['query']['index'] as number);
+							return queryBulder.where('chat_message.id', getOperator(request['query']), request['query']['index'] as number);
 						})
 						.orderBy('chat_message.id', 'desc')
 						.limit(request['query']['size'])

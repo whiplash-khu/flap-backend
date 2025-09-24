@@ -1,4 +1,4 @@
-import { kysely } from '@library/database';
+import { getOperator, kysely } from '@library/database';
 import { NotFound, Unauthorized } from '@library/httpError';
 import { Database, Group, Pagenation, Schedule, ScheduleAttendance, User } from '@library/type';
 import { FastifyReply, FastifyRequest } from 'fastify';
@@ -47,7 +47,7 @@ export default function (request: FastifyRequest<{
 						.select('user.name')
 						.where('schedule_id', '=', request['params']['scheduleId'])
 						.$if(typeof request['query']['index'] === 'number', function (queryBulder: SelectQueryBuilder<Database, 'schedule_attendance' | 'user', Pick<ScheduleAttendance & User, 'id' | 'userId' | 'status' | 'name'>>): typeof queryBulder {
-							return queryBulder.where('schedule_attendance.id', '<', request['query']['index'] as number);
+							return queryBulder.where('schedule_attendance.id', getOperator(request['query']), request['query']['index'] as number);
 						})
 						.limit(request['query']['size'])
 						.execute();

@@ -13,12 +13,14 @@ export default function (request: FastifyRequest<{
 		.select([
 			'user.media_id as mediaId',
 			'user.name',
-			'user.school'
+			'user.school',
+			'user.admission_year as admissionYear'
 		])
-		.$if(request['userId'] === request['params']['userId'], function (queryBuilder: SelectQueryBuilder<Database, 'user', Pick<User, 'name' | 'school' | 'mediaId'>>): typeof queryBuilder {
+		.$if(request['userId'] === request['params']['userId'], function (queryBuilder: SelectQueryBuilder<Database, 'user', Pick<User, 'name' | 'school' | 'admissionYear' | 'mediaId'>>): typeof queryBuilder {
 			return queryBuilder.select([
 				'user.email',
-				'user.birth_at as birthAt'
+				'user.birthdate',
+				'user.is_male as isMale'
 			]);
 		})
 		.innerJoin('media', 'user.media_id', 'media.id')
@@ -30,7 +32,7 @@ export default function (request: FastifyRequest<{
 		.where('user.deleted_at', 'is', null)
 		.executeTakeFirst()
 		// lazy
-		.then(function (userWithMedia?: Pick<User & Media, 'name' | 'school' | 'mediaId' | 'hash' | 'type'> & Partial<Pick<User, 'email' | 'birthAt'>>): void {
+		.then(function (userWithMedia?: Pick<User & Media, 'name' | 'school' | 'admissionYear' | 'mediaId' | 'hash' | 'type'> & Partial<Pick<User, 'email' | 'birthdate' | 'isMale'>>): void {
 			if(userWithMedia === undefined) {
 				throw new NotFound('Params["userId"] must be valid');
 			}
@@ -39,7 +41,8 @@ export default function (request: FastifyRequest<{
 				id: request['params']['userId'],
 				email: userWithMedia['email'],
 				name: userWithMedia['name'],
-				birthAt: userWithMedia['birthAt'],
+				birthdate: userWithMedia['birthdate'],
+				isMale: userWithMedia['isMale'],
 				school: userWithMedia['school'],
 				media: {
 					id: userWithMedia['mediaId'],

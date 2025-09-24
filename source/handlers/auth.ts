@@ -4,19 +4,27 @@ import { DoneFuncWithErrOrRes, FastifyReply, FastifyRequest } from 'fastify';
 
 export default function authHandler(request: FastifyRequest, reply: FastifyReply, done: DoneFuncWithErrOrRes): void {
 	if(typeof request['headers']['authorization'] !== 'string' || !request['headers']['authorization'].startsWith('Bearer ')) {
-		reply.send(new BadRequest('Authroization type must be bearer'));
+		done(new BadRequest('Authroization type must be bearer'));
 
 		return;
 	}
 
-	const jsonWebToken: JsonWebToken<{
+	let jsonWebToken: JsonWebToken<{
 		uid: number;
-	}> = new JsonWebToken<{
-		uid: number;
-	}>(request['headers']['authorization'].slice(7), process['env']['JSON_WEB_TOKEN_SECRET']);
+	}>;
+
+	try {
+		jsonWebToken = new JsonWebToken<{
+			uid: number;
+		}>(request['headers']['authorization'].slice(7), process['env']['JSON_WEB_TOKEN_SECRET']);
+	} catch {
+		done(new BadRequest('Authroization value must be valid json web token'));
+
+		return;
+	}
 
 	if(!jsonWebToken.isValid()) {
-		reply.send(new BadRequest('Authroization value must be valid json web token'));
+		done(new BadRequest('Authroization value must be valid json web token'));
 
 		return;
 	}

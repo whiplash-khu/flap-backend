@@ -1,4 +1,4 @@
-import { kysely } from '@library/database';
+import { getOperator, kysely } from '@library/database';
 import { NotFound, Unauthorized } from '@library/httpError';
 import { Database, GroupUser, Media, Pagenation, User } from '@library/type';
 import { FastifyReply, FastifyRequest } from 'fastify';
@@ -46,7 +46,7 @@ export default function (request: FastifyRequest<{
 						.where('group_user.group_id', '=', request['params']['groupId'])
 						.where('user.deleted_at', 'is', null)
 						.$if(typeof request['query']['index'] === 'number', function (queryBulder: SelectQueryBuilder<Database, 'group_user' | 'media' | 'user', Pick<User & Media, 'id' | 'name' | 'school' | 'mediaId' | 'hash' | 'type'>>): typeof queryBulder {
-							return queryBulder.where('group_user.id', '<', request['query']['index'] as number);
+							return queryBulder.where('group_user.id', getOperator(request['query']), request['query']['index'] as number);
 						})
 						.limit(request['query']['size'])
 						.execute();

@@ -1,16 +1,15 @@
 import { kysely } from '@library/database';
-import { BadRequest } from '@library/httpError';
-import { Chat, ChatUserTable, Database, User } from '@library/type';
-import { FastifyRequest, FastifyReply } from 'fastify';
+import { Chat, ChatUserTable, Database, User, UserWebSocket } from '@library/type';
+import { PolicyViolation, sockets, WebSocketEvent } from '@library/websocket';
+import S from 'fluent-json-schema';
+import chatUserSchema from '@schemas/chatUser';
 import { ExpressionBuilder, ExpressionWrapper, Insertable, InsertResult, Transaction } from 'kysely';
 
-export default function (request: FastifyRequest<{
-	Body: {
-		userIds: User['id'][];
-	};
-}>, reply: FastifyReply): Promise<void> {
-	if(!request['body']['userIds'].includes(request['userId'])) {
-		throw new BadRequest('Body["userIds"] must include yourself');
+export default new WebSocketEvent(function (socket: UserWebSocket, data: {
+	userIds: User['id'][];
+}): Promise<void> {
+	if(!data['userIds'].includes(socket['userId'])) {
+		throw new PolicyViolation('Data["userIds"] must include yourself');
 	}
 
 	return kysely.transaction()
@@ -21,12 +20,12 @@ export default function (request: FastifyRequest<{
 
 			return transaction.selectFrom('user')
 				.select('name')
-				.where('id', 'in', request['body']['userIds'])
+				.where('id', 'in', data['userIds'])
 				.where('deleted_at', 'is', null)
 				.execute()
 				.then(function (users: Pick<User, 'name'>[]): Promise<{} | undefined> {
-					if(users['length'] !== request['body']['userIds']['length']) {
-						throw new BadRequest('Body["userIds"] must be valid');
+					if(users['length'] !== data['userIds']['length']) {
+						throw new PolicyViolation('Data["userIds"] must be valid');
 					}
 
 					chat['name'] = users[0]['name'];
@@ -37,10 +36,10 @@ export default function (request: FastifyRequest<{
 
 					return transaction.selectFrom('chat_user')
 						.groupBy('chat_id')
-						.having(kysely.fn.countAll(), '=', request['body']['userIds']['length'])
+						.having(kysely.fn.countAll(), '=', data['userIds']['length'])
 						.having(kysely.fn.count(function (expressionBuilder: ExpressionBuilder<Database, 'chat_user'>): ExpressionWrapper<Database, "chat_user", number | null> {
 							return expressionBuilder.case()
-								.when('user_id', 'in', request['body']['userIds'])
+								.when('user_id', 'in', data['userIds'])
 								.then(1)
 								.end();
 						}), '=', 2)
@@ -48,7 +47,7 @@ export default function (request: FastifyRequest<{
 				})
 				.then(function (_chat?: {}): Promise<Pick<Chat, 'id'>> {
 					if(_chat !== undefined) {
-						throw new BadRequest('Body["userIds"] must be unique combination among all chats');
+						throw new PolicyViolation('Data["userIds"] must be unique combination among all chats');
 					}
 
 					return transaction.insertInto('chat')
@@ -63,10 +62,10 @@ export default function (request: FastifyRequest<{
 
 					chat['id'] = _chat['id'];
 
-					for(let i: number = 0; i < request['body']['userIds']['length']; i++) {
+					for(let i: number = 0; i < data['userIds']['length']; i++) {
 						chatUserInserts.push({
 							chat_id: chat['id'],
-							user_id: request['body']['userIds'][i]
+							user_id: data['userIds'][i]
 						});
 					}
 
@@ -75,11 +74,12 @@ export default function (request: FastifyRequest<{
 						.executeTakeFirstOrThrow();
 				})
 				.then(function (): void {
-					reply.status(201)
-						.header('location', '/chats/' + chat['id'])
-						.send({ 
-							id: chat['id']
-						});
+					sockets.send(data['userIds'], '{"type":"CREATE_CHAT","data":{"id":' + chat['id'] + '}}');
 				});
 		});
-}
+}, S.object()
+	.prop('userIds', S.array()
+		.items(chatUserSchema['userId'])
+		.minItems(2)
+		.uniqueItems(true)
+		.required()));

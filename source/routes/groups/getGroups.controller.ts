@@ -1,4 +1,4 @@
-import { kysely } from '@library/database';
+import { getOperator, kysely } from '@library/database';
 import { Database, Group, GroupTag, Media, Pagenation, Tag } from '@library/type';
 import { FastifyReply, FastifyRequest } from 'fastify';
 import { QueryCreator, SelectQueryBuilder, sql, Transaction } from 'kysely';
@@ -30,7 +30,7 @@ export default function (request: FastifyRequest<{
 				])
 				.where('group.deleted_at', 'is', null)
 				.$if(typeof request['query']['index'] === 'number', function (queryBulder: SelectQueryBuilder<Database, 'group' | 'media', Pick<Group & Media, 'id' | 'name' | 'startAt' | 'createdAt' | 'mediaId' | 'hash' | 'type'>>): typeof queryBulder {
-					return queryBulder.where('group.id', '<', request['query']['index'] as number);
+					return queryBulder.where('group.id', getOperator(request['query']), request['query']['index'] as number);
 				})
 				.orderBy('group.id', 'desc')
 				.limit(request['query']['size'])

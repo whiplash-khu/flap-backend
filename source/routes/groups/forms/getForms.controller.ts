@@ -1,4 +1,4 @@
-import { kysely } from '@library/database';
+import { getOperator, kysely } from '@library/database';
 import { NotFound, Unauthorized } from '@library/httpError';
 import { Database, Pagenation, User, Media, Form, Group } from '@library/type';
 import { FastifyReply, FastifyRequest } from 'fastify';
@@ -19,7 +19,7 @@ export default function (request: FastifyRequest<{
         .where('group.id', '=', request['params']['groupId'])
         .where('group.deleted_at', 'is', null)
         .executeTakeFirst()
-        .then(function (group?: Pick<Group, 'userId'>): Promise<Pick<Form & User & Media, 'id' | 'createdAt' | 'userId' | 'name' | 'mediaId' | 'hash' | 'type'>[]> {
+        .then(function (group?: Pick<Group, 'userId'>): Promise<Pick<Form & User & Media, 'id' | 'createdAt' | 'userId' | 'name' | 'mediaId' | 'hash' | 'type' | 'school' | 'admissionYear' | 'birthdate' | 'isMale'>[]> {
           if(group === undefined) {
             throw new NotFound('Params["groupId"] must be valid');
           }
@@ -37,6 +37,10 @@ export default function (request: FastifyRequest<{
 						.select([
               'user.id as userId',
               'user.name as name',
+							'user.school',
+							'user.admission_year as admissionYear',
+							'user.birthdate',
+							'user.is_male as isMale'
 						])
 						.innerJoin('media', 'user.media_id', 'media.id')
             .select([
@@ -45,18 +49,18 @@ export default function (request: FastifyRequest<{
               'media.type as type'
             ])
 						.where('form.group_id', '=', request['params']['groupId'])
-						.$if(typeof request['query']['index'] === 'number', function (queryBuilder: SelectQueryBuilder<Database, 'form' | 'user' | 'media', Pick<Form & User & Media, 'id' | 'createdAt' | 'userId' | 'name' | 'mediaId' | 'hash' | 'type'>>): typeof queryBuilder {
-							return queryBuilder.where('form.id', '<', request['query']['index'] as number);
+						.$if(typeof request['query']['index'] === 'number', function (queryBuilder: SelectQueryBuilder<Database, 'form' | 'user' | 'media', Pick<Form & User & Media, 'id' | 'createdAt' | 'userId' | 'name' | 'mediaId' | 'hash' | 'type' | 'school' | 'admissionYear' | 'birthdate' | 'isMale'>>): typeof queryBuilder {
+							return queryBuilder.where('form.id', getOperator(request['query']), request['query']['index'] as number);
 						}) 
             .orderBy('form.id', 'desc')
             .limit(request['query']['size'])
 						.execute();
 				})
-        .then(function (_forms: Pick<Form & User & Media, 'id' | 'createdAt' | 'userId' | 'name' | 'mediaId' | 'hash' | 'type'>[]): void {
+        .then(function (_forms: Pick<Form & User & Media, 'id' | 'createdAt' | 'userId' | 'name' | 'mediaId' | 'hash' | 'type' | 'school' | 'admissionYear' | 'birthdate' | 'isMale'>[]): void {
 					const forms: ({
 						id: Form['id'];
 						createdAt: Form['createdAt'];
-						user: Pick<User, 'id' | 'name'> & {
+						user: Pick<User, 'id' | 'name' | 'school' | 'admissionYear' | 'birthdate' | 'isMale'> & {
 							media: Pick<Media, 'id' | 'hash' | 'type'>;
 						};
 					})[] = [];
@@ -68,6 +72,10 @@ export default function (request: FastifyRequest<{
               user: {
                 id: _forms[i]['userId'],
                 name: _forms[i]['name'],
+								school: _forms[i]['school'],
+								admissionYear: _forms[i]['admissionYear'],
+								birthdate: _forms[i]['birthdate'],
+								isMale: _forms[i]['isMale'],
                 media: {
                   id: _forms[i]['mediaId'],
                   hash: _forms[i]['hash'],

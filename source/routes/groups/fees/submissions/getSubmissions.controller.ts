@@ -1,6 +1,6 @@
 import { FastifyReply, FastifyRequest } from 'fastify';
 import { JoinBuilder, Nullable, SelectQueryBuilder, Transaction } from 'kysely';
-import { kysely } from '@library/database';
+import { getOperator, kysely } from '@library/database';
 import { NotFound, Unauthorized } from '@library/httpError';
 import { Database, Fee, FeeSubmission, FeeSubmissionTable, Group, Pagenation, User } from '@library/type';
 
@@ -62,7 +62,7 @@ export default function (request: FastifyRequest<{
 							submissionId: FeeSubmission['id'];
 							createdAt: FeeSubmission['createdAt'];
 						}>>): typeof queryBulder {
-							return queryBulder.where('fee_submission.id', '<', request['query']['index'] as number);
+							return queryBulder.where('fee_submission.id', getOperator(request['query']), request['query']['index'] as number);
 						})
 						.limit(request['query']['size'])
 						.execute();

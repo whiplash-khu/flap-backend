@@ -13,10 +13,10 @@ export default class Module {
 		return;
 	}
 
-	public register(instance: FastifyInstance): void {
+	public register(fastify: FastifyInstance): void {
 		for(let i: number = 0; i < this['routers']['length']; i++) {
-			instance.route(Object.assign(this['routers'][i], {
-				url: join(instance['prefix'], this['prefix'], this['routers'][i]['url']),
+			fastify.route(Object.assign(this['routers'][i], {
+				url: join(fastify['prefix'], this['prefix'], this['routers'][i]['url']),
 				schemaErrorFormatter: schemaErrorFormatHandler
 			}, this['routers'][i]['excludePreHandler'] === true ? undefined : {
 				preHandler: authHandler
@@ -25,7 +25,7 @@ export default class Module {
 
 		for(let i: number = 0; i < this['modules']['length']; i++) {
 			this['modules'][i].appendPrefix(this['prefix']);
-			this['modules'][i].register(instance);
+			this['modules'][i].register(fastify);
 		}
 
 		return;
