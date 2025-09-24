@@ -1,5 +1,5 @@
 import { Emojis } from '@library/constant';
-import { kysely } from '@library/database';
+import { getOperator, kysely } from '@library/database';
 import { NotFound, Unauthorized } from '@library/httpError';
 import { Post, Database, Pagenation, User, Media, PostReaction } from '@library/type';
 import { FastifyReply, FastifyRequest } from 'fastify';
@@ -60,7 +60,7 @@ export default function (request: FastifyRequest<{
 						.where('post.group_id', '=', request['params']['groupId'])
 						.where('post.deleted_at', 'is', null)
 						.$if(typeof request['query']['index'] === 'number', function (queryBuilder: SelectQueryBuilder<Database, 'post' | 'user' | 'media', Pick<Post & User & Media, 'id' | 'content' | 'createdAt' | 'isNotice' | 'userId' | 'name' | 'mediaId' | 'hash' | 'type'>>): typeof queryBuilder {
-							return queryBuilder.where('post.id', '<', request['query']['index'] as number);
+							return queryBuilder.where('post.id', getOperator(request['query']), request['query']['index'] as number);
 						}) 
 						.orderBy('post.id', 'desc')
 						.limit(request['query']['size'])

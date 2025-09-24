@@ -260,6 +260,8 @@ export type UserLostPassword = Selectable<CamelizeKeys<UserLostPasswordTable>>;
 export interface Pagenation {
 	index?: number;
 	size: number;
+	include: boolean;
+	reverse: boolean;
 }
 
 export interface Calender {

@@ -1,5 +1,5 @@
-import { Insertable, Kysely, OnConflictBuilder, OnConflictUpdateBuilder, PostgresDialect, sql } from 'kysely';
-import { Database, Tag, TagTable } from './type';
+import { ComparisonOperatorExpression, Insertable, Kysely, OnConflictBuilder, OnConflictUpdateBuilder, PostgresDialect, sql } from 'kysely';
+import { Database, Pagenation, Tag, TagTable } from './type';
 import { Pool, types } from 'pg';
 import { randomBytes } from 'crypto';
 import { S3Client } from '@aws-sdk/client-s3';
@@ -61,4 +61,14 @@ export function createTags(kysely: Kysely<Database>, names: Tag['name'][]): Prom
 		})
 		.returning('id')
 		.execute();
+}
+
+export function getOperator(query: Pagenation): ComparisonOperatorExpression {
+	let operator: ComparisonOperatorExpression = query['reverse'] ? '>' : '<';
+
+	if(query['include']) {
+		operator += '=';
+	}
+
+	return operator as ComparisonOperatorExpression;
 }

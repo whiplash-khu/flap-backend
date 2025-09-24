@@ -1,8 +1,8 @@
-import { kysely } from '@library/database';
+import { getOperator, kysely } from '@library/database';
 import { BadRequest } from '@library/httpError';
 import { Chat, ChatUser, Database, Pagenation } from '@library/type';
 import { FastifyRequest, FastifyReply } from 'fastify';
-import { ExpressionBuilder, ExpressionWrapper, SelectQueryBuilder } from 'kysely';
+import { ExpressionBuilder, ExpressionWrapper, SelectQueryBuilder, sql } from 'kysely';
 
 export default function (request: FastifyRequest<{
 	Querystring: Pagenation & {
@@ -16,13 +16,14 @@ export default function (request: FastifyRequest<{
 	}
 
 	return kysely.selectFrom('chat')
-		.select([
-			'chat.id',
-			'chat.name'
-		])
+		.select(['chat.id', 'chat.name'])
 		.innerJoin('chat_user', 'chat.id', 'chat_user.chat_id')
+		.innerJoin('chat_message', 'chat.id', 'chat_message.chat_id')
+		.select(sql<Date>`max(chat_message.created_at)`.as('updatedAt'))
 		.where('chat_user.user_id', '=', request['userId'])
-		.$if(shouldCheckUserIds, function (queryBuilder: SelectQueryBuilder<Database, "chat", Pick<Chat, 'id' | 'name'>>): typeof queryBuilder {
+		.$if(shouldCheckUserIds, function (queryBuilder: SelectQueryBuilder<Database, "chat", Pick<Chat, 'id' | 'name'> & {
+			updatedAt: Date;
+		}>): typeof queryBuilder {
 			return queryBuilder.where('chat.id', 'in', kysely.selectFrom('chat_user')
 				.select('chat_id')
 				.groupBy('chat_id')
@@ -34,8 +35,10 @@ export default function (request: FastifyRequest<{
 						.end();
 				}), '=', 2));
 		})
-		.$if(typeof request['query']['index'] === 'number', function (queryBulder: SelectQueryBuilder<Database, "chat", Pick<Chat, 'id' | 'name'>>): typeof queryBulder {
-			return queryBulder.where('chat.id', '<', request['query']['index'] as number);
+		.$if(typeof request['query']['index'] === 'number', function (queryBulder: SelectQueryBuilder<Database, "chat", Pick<Chat, 'id' | 'name'> & {
+			updatedAt: Date;
+		}>): typeof queryBulder {
+			return queryBulder.where('chat.id', getOperator(request['query']), request['query']['index'] as number);
 		})
 		.limit(request['query']['size'])
 		.orderBy('chat.id', 'desc')
