@@ -11,9 +11,11 @@ export default class JsonWebToken<T = Record<string, unknown>> {
 	public static create<T = Record<string, unknown>>(payload: T & {
 		exp: number;
 	}, secretKey: string): string {
-		const headerAndPayload: string = 'eyJhbGciOiJIUzUxMiIsInR5cCI6IkpXVCJ9.' + Buffer.from(JSON.stringify(payload)).toString('base64url');
+		const headerAndPayload: string = 'eyJhbGciOiJIUzUxMiIsInR5cCI6IkpXVCJ9.' + Buffer.from(JSON.stringify(payload))
+			.toString('base64url');
 
-		return headerAndPayload + '.' + createHmac('sha512', secretKey).update(headerAndPayload).digest('base64url');
+		return headerAndPayload + '.' + createHmac('sha512', secretKey).update(headerAndPayload)
+			.digest('base64url');
 	}
 
 	constructor(token: string, secretKey: string) {
@@ -27,7 +29,8 @@ export default class JsonWebToken<T = Record<string, unknown>> {
 				throw null
 			}
 
-			this.#payload = JSON.parse(Buffer.from(token.slice(firstIndex+1, lastIndex), 'base64url').toString('utf-8'));
+			this.#payload = JSON.parse(Buffer.from(token.slice(firstIndex+1, lastIndex), 'base64url')
+				.toString('utf-8'));
 		} catch {
 			throw new Error('Payload should be valid');
 		}
@@ -55,6 +58,7 @@ export default class JsonWebToken<T = Record<string, unknown>> {
 			return false;
 		}
 
-		return this.#payload !== null && createHmac('sha512', this.#secretKey).update(this.#token.slice(0, lastIndex)).digest('base64url') === this.#token.slice(lastIndex+1) && this.#payload["exp"] > getEpoch();
+		return this.#payload !== null && createHmac('sha512', this.#secretKey).update(this.#token.slice(0, lastIndex))
+			.digest('base64url') === this.#token.slice(lastIndex+1) && this.#payload["exp"] > getEpoch();
 	}
 }
