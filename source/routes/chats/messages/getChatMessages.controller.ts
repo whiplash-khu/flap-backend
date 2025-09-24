@@ -4,7 +4,7 @@ import { Chat, ChatMessage, ChatUser, Database, Media, Pagenation, User } from '
 import { FastifyRequest, FastifyReply } from 'fastify';
 import { JoinBuilder, Nullable, SelectQueryBuilder, Transaction } from 'kysely';
 
-export default function(request: FastifyRequest<{
+export default function (request: FastifyRequest<{
 	Params: {
 		chatId: Chat['id'];
 	};
