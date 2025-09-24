@@ -8,15 +8,10 @@ import postTokenController from './postToken.controller';
 import postVerificationController from './postVerification.controller';
 import postLostPasswordController from './postLostPassword.controller';
 import patchLostPasswordController from './patchLostPassword.controller';
-import dummyHandler from '@handlers/dummy';
+import commonSchema from '@schemas/common';
 
 export default new Module('auth', [
 	{
-		method: 'GET',
-		url: '',
-		excludePreHandler: true,
-		handler: dummyHandler
-	}, {
 		method: 'POST',
 		url: 'login',
 		handler: postLoginController,
@@ -33,9 +28,7 @@ export default new Module('auth', [
 		excludePreHandler: true,
 		schema: {
 			body: S.object()
-				.prop('refreshToken', S.string()
-					.pattern(/(^[\w-]*\.[\w-]*\.[\w-]*$)/)
-					.required())
+				.prop('refreshToken', commonSchema['jsonWebToken'].required())
 		}
 	}, {
 		method: 'POST',
