@@ -44,6 +44,7 @@ export default function (request: FastifyRequest<{
 				birthdate: userWithMedia['birthdate'],
 				isMale: userWithMedia['isMale'],
 				school: userWithMedia['school'],
+				admissionYear: userWithMedia['admissionYear'],
 				media: {
 					id: userWithMedia['mediaId'],
 					hash: userWithMedia['hash'],
