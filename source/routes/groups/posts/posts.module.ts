@@ -17,6 +17,7 @@ export default new Module(':groupId/posts', [
 			params: S.object()
 				.prop('groupId', postSchema['groupId'].required()),
 			body: S.object()
+				.prop('title', postSchema['title'].required())
 				.prop('content', postSchema['content'].required())
 				.prop('isNotice', postSchema['isNotice'].required())
 		}
@@ -42,9 +43,12 @@ export default new Module(':groupId/posts', [
 				.prop('groupId', postSchema['groupId'].required())
 				.prop('postId', postSchema['id'].required()),
 			body: S.object()
+				.prop('title', postSchema['title'])
 				.prop('content', postSchema['content'].required())
 				.prop('isNotice', postSchema['isNotice'].required())
 				.anyOf([
+					S.object()
+						.required(['title']),
 					S.object()
 						.required(['content']),
 					S.object()
