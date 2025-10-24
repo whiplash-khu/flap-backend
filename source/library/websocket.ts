@@ -112,9 +112,16 @@ export class WebSocketManager extends Map<number, UserWebSocket> {
 		const content: string = JSON.stringify(message);
 		
 		for(let i: number = 0; i < keys['length']; i++) {
-			const socket: UserWebSocket | undefined = super.get(isNested ? (keys[i] as {
+			const userId: number = isNested ? (keys[i] as {
 				userId: number;
-			})['userId'] : keys[i] as number);
+			})['userId'] : keys[i] as number;
+
+			notificationInserts.push({
+				user_id: userId,
+				content: content
+			});
+
+			const socket: UserWebSocket | undefined = super.get(userId);
 
 			if(socket === undefined) {
 				continue;
@@ -151,18 +158,17 @@ export class WebSocketManager extends Map<number, UserWebSocket> {
 				}
 			}
 
-			notificationInserts.push({
-				user_id: socket['userId'],
-				content: content
-			})
-
 			socket.send(content, false);
+		}
+
+		if(notificationInserts['length'] === 0) {
+			return;
 		}
 
 		kysely.insertInto('notification')
 			.values(notificationInserts)
 			.executeTakeFirstOrThrow()
-			.catch()
+			.catch(console.error)
 	}
 }
 

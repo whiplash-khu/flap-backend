@@ -75,8 +75,6 @@ export default new Module(':groupId/schedules', [
 					S.object()
 						.required(['address']),
 					S.object()
-						.required(['place']),
-					S.object()
 						.required(['description'])
 				])
 		}

@@ -22,7 +22,7 @@ export default function (request: FastifyRequest<{
 				})
 				.select('schedule.id as scheduleId')
 				.leftJoin('schedule_attendance', function (joinBuilder: JoinBuilder<Database, 'group' | 'schedule' | 'schedule_attendance'>): typeof joinBuilder {
-					return joinBuilder.onRef('schedule.id', '=', 'schedule_attendance.id');
+					return joinBuilder.onRef('schedule.id', '=', 'schedule_attendance.schedule_id');
 				})
 				.select('schedule_attendance.id as attendanceId')
 				.where('group.id', '=', request['params']['groupId'])
