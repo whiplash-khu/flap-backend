@@ -14,9 +14,6 @@ export default {
 	address: S.string()
 		.minLength(10)
 		.maxLength(64),
-	place: S.string()
-		.minLength(1)
-		.maxLength(32),
 	description: S.string()
 		.maxLength(128)
 } satisfies Record<keyof Omit<Schedule, 'createdAt' | 'deletedAt'>, JSONSchema>;

@@ -1,3 +1,4 @@
+import { EventTypes } from '@library/constant';
 import { kysely } from '@library/database';
 import { ChatMessage, ChatUser, Database, UserWebSocket } from '@library/type';
 import { PolicyViolation, sockets, WebSocketEvent } from '@library/websocket';
@@ -50,7 +51,15 @@ export default new WebSocketEvent(function (socket: UserWebSocket, data: Pick<Ch
 						.executeTakeFirstOrThrow();
 				})
 				.then(function (chatMessage: Pick<ChatMessage, 'id'>): void {
-					sockets.send(userIds, '{"type":"CREATE_MESSAGE","data":{"id":' + chatMessage['id'] + ',"chatId":' + data['chatId'] + ',"userId":' + socket['userId'] + ',"content":"' + data['content'].replace(/"/g, '\\"') + '"}}');
+					sockets.send(userIds, {
+						type: EventTypes['CREATE_MESSAGE'],
+						data: {
+							id: chatMessage['id'],
+							chatId: data['chatId'],
+							userId: socket['userId'],
+							content: data['content']
+						}
+					});
 				});
 		});
 }, S.object()

@@ -9,6 +9,7 @@ import chatsModule from './chats/chats.module';
 import groupsModule from './groups/groups.module';
 import mediasModule from './medias/medias.module';
 import webSocketHandler from '@handlers/websocket';
+import noticesModule from './notices/notices.module';
 
 export default new Module('/', [
 	{
@@ -36,4 +37,4 @@ export default new Module('/', [
 		handler: getRobotsTxtController,
 		excludePreHandler: true
 	}
-], [authModule, dotWellKnownModule, chatsModule, groupsModule, usersModule, mediasModule]);
+], [authModule, dotWellKnownModule, chatsModule, groupsModule, usersModule, noticesModule, mediasModule]);

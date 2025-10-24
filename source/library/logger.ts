@@ -4,6 +4,8 @@ import { Socket } from 'net';
 import { inspect } from 'util';
 
 export default class Logger implements FastifyBaseLogger {
+	public static instance: Logger = new Logger();
+
 	public msgPrefix: string | undefined;
 	public level: LogLevel | 'silent' | (string & {}) = 'silent';
 

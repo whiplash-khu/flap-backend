@@ -9,7 +9,7 @@ export default function (request: FastifyRequest<{
 		groupId: Post['groupId'];
 		postId: Post['id'];
 	};
-	Body: Partial<Pick<Post, 'content' | 'isNotice'>>;
+	Body: Partial<Pick<Post, 'title' | 'content' | 'isNotice'>>;
 }>, reply: FastifyReply): Promise<void> {
 	return kysely.transaction()
 		.setAccessMode('read write')
@@ -52,6 +52,7 @@ export default function (request: FastifyRequest<{
 
 					return transaction.updateTable('post')
 						.set({
+							title: request['body']['title'],
 							content: request['body']['content'],
 							is_notice: request['body']['isNotice']
 						})

@@ -1,16 +1,18 @@
 import type { FastifyRequest } from 'fastify';
 import authEvent from '@events/auth';
-import { NotificationSetting, UserWebSocket } from '@library/type';
+import { UserSetting, UserWebSocket } from '@library/type';
 import { events, PolicyViolation, sockets, WebSocketEvent } from '@library/websocket';
 import { FastifySchemaValidationError } from 'fastify/types/schema';
 import { kysely } from '@library/database';
 import schemaErrorFormatHandler from './schemaErrorFormat';
-import { WebSocketCloseCodes } from '@library/constant';
+import { EventTypes, WebSocketCloseCodes } from '@library/constant';
 
 export default function webSocketHandler(socket: UserWebSocket, request: FastifyRequest): void {
 	sockets.set(request['userId'], socket);
 	
-	socket.send('{"type":"AUTH"}');
+	socket.send({
+		type: EventTypes['AUTH']
+	});
 
 	global.setTimeout(function (): void {
 		if(socket['authAt'] === 0) {
@@ -52,17 +54,16 @@ export default function webSocketHandler(socket: UserWebSocket, request: Fastify
 			return;
 		}
 
-		kysely.selectFrom('notification_setting')
+		kysely.selectFrom('user_setting')
 			.select([
-				'notification_setting.is_application_notice_enabled as isApplicationNoticeEnabled',
-				'notification_setting.group_notice_type as groupNoticeType',
-				'notification_setting.is_post_enabled as isPostEnabled',
-				'notification_setting.is_schedule_enabled as isScheduleEnabled',
-				'notification_setting.is_fee_enabled as isFeeEnabled'
+				'user_setting.is_group_notice_enabled as isGroupNoticeEnabled',
+				'user_setting.is_post_enabled as isPostEnabled',
+				'user_setting.is_schedule_enabled as isScheduleEnabled',
+				'user_setting.is_fee_enabled as isFeeEnabled'
 			])
 			.where('user_id', '=', socket['userId'])
 			.executeTakeFirst()
-			.then(function (setting?: Omit<NotificationSetting, 'userId'>): void {
+			.then(function (setting?: Omit<UserSetting, 'userId'>): void {
 				if(setting === undefined) {
 					sockets.delete(socket['userId'], new PolicyViolation('Message["type"] must be valid'));
 
@@ -71,7 +72,9 @@ export default function webSocketHandler(socket: UserWebSocket, request: Fastify
 
 				socket['setting'] = setting;
 
-				socket.send('{"type":"READY"}');
+				socket.send({
+					type: EventTypes['READY']
+				});
 
 				socket.on('close', function (code: number, reason: Buffer): void {
 					switch(code) {

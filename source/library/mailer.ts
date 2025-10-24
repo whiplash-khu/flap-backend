@@ -5,7 +5,7 @@ const smtp: SMTPChannel = new SMTPChannel({
 	host: process['env']['EMAIL_HOST'],
 	port: Number.parseInt(process['env']['EMAIL_PORT'], 10),
 	// SSL/TLS instead of STARTTLS
-	secure: true
+	//secure: true
 });
 
 export function sendMail(email: string, title: string, content: string): Promise<boolean> {
@@ -14,12 +14,12 @@ export function sendMail(email: string, title: string, content: string): Promise
 			return smtp.write('EHLO server\r\n');
 		})
 		// SSL/TLS instead of STARTTLS
-		//.then(function (): Promise<void> {
-		//	return smtp.write('STARTTLS\r\n');
-		//})
-		//.then(function (): Promise<void> {
-		//	return smtp.negotiateTLS();
-		//})
+		.then(function (): Promise<void> {
+			return smtp.write('STARTTLS\r\n');
+		})
+		.then(function (): Promise<void> {
+			return smtp.negotiateTLS();
+		})
 		.then(function (): Promise<void> {
 			return smtp.write('AUTH LOGIN\r\n');
 		})

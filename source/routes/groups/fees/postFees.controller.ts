@@ -3,7 +3,9 @@ import { Transaction } from 'kysely';
 import { encryptAes } from '@library/crypto';
 import { kysely } from '@library/database';
 import { NotFound, Unauthorized } from '@library/httpError';
-import { Database, Fee, Group } from '@library/type';
+import { Database, Fee, Group, GroupUser } from '@library/type';
+import { sockets } from '@library/websocket';
+import { EventTypes } from '@library/constant';
 
 export default function (request: FastifyRequest<{
 		Params: {
@@ -15,6 +17,8 @@ export default function (request: FastifyRequest<{
 		.setAccessMode('read write')
 		.setIsolationLevel('serializable')
 		.execute(function (transaction: Transaction<Database>): Promise<void> {
+			let fee: Pick<Fee, 'id'>;
+
 			return transaction.selectFrom('group')
 				.select('user_id as userId')
 				.where('id', '=', request['params']['groupId'])
@@ -41,7 +45,23 @@ export default function (request: FastifyRequest<{
 						.returning('id')
 						.executeTakeFirstOrThrow();
 				})
-				.then(function (fee: Pick<Fee, 'id'>): void {
+				.then(function (_fee: Pick<Fee, 'id'>): Promise<Pick<GroupUser, 'userId'>[]> {
+					fee = _fee;
+
+					return transaction.selectFrom('group_user')
+						.innerJoin('user', 'group_user.user_id', 'user.id')
+						.select('group_user.user_id as userId')
+						.where('group_user.id', '=', request['params']['groupId'])
+						.where('group_user.user_id', '!=', request['userId'])
+						.where('user.deleted_at', 'is', null)
+						.execute();
+				})
+				.then(function (groupUsers: Pick<GroupUser, 'userId'>[]): void {
+					sockets.send(groupUsers, {
+						type: EventTypes['CREATE_FEE'],
+						data: fee
+					});
+
 					reply.send(fee);
 				});
 		});

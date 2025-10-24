@@ -6,6 +6,7 @@ import submissionsModule from './submissions/submissions.module';
 import Module from '@library/module';
 import feeSchema from '@schemas/fee';
 import pagenationSchema from '@schemas/pagenation';
+import deleteFeeController from './deleteFee.controller';
 
 export default new Module(':groupId/fees', [
 	{
@@ -68,7 +69,7 @@ export default new Module(':groupId/fees', [
 	{
 		method: 'DELETE',
 		url: ':feeId',
-		handler: patchFeeController,
+		handler: deleteFeeController,
 		schema: {
 			params: S.object()
 				.prop('groupId', feeSchema['groupId'].required())

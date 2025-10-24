@@ -16,7 +16,7 @@ export default new Module(':groupId/forms', [
       params: S.object()
         .prop('groupId', formSchema['groupId'].required()),
       body: S.object()
-        .prop('content', S.array()
+        .prop('answers', S.array()
           .items(formAnswerSchema['content'])
           .minItems(1)
           .required())

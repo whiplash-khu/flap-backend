@@ -193,8 +193,13 @@ export const enum WebSocketCloseCodes {
 	TLS_HANDSHAKE_FAILURE = 1015
 }
 
-export const enum GroupNoticeTypes {
-	NONE = 1,
-	NOTICE = 2,
-	POST = 3
+export const enum EventTypes {
+	AUTH = 1,
+	READY = 2,
+	CREATE_FEE = 3,
+	CREATE_SCHEDULE = 4,
+	CREATE_POST = 5,
+	CREATE_NOTICE = 6,
+	CREATE_CHAT = 7,
+	CREATE_MESSAGE = 8
 }

@@ -2,7 +2,7 @@ import { FastifyBaseLogger, FastifySchema, FastifyTypeProvider, HTTPMethods, Rou
 import { IncomingMessage, Server, ServerResponse } from 'http';
 import { ArraySchema, BooleanSchema, ExtendedSchema, IntegerSchema, NullSchema, NumberSchema, ObjectSchema, StringSchema } from 'fluent-json-schema';
 import { ColumnType, Generated, GeneratedAlways, Selectable } from 'kysely';
-import { GroupNoticeTypes, ScheduleAttendanceStatus } from './constant';
+import { ScheduleAttendanceStatus } from './constant';
 import { WebSocket } from '@fastify/websocket';
 import { MessageEvent as _MessageEvent } from 'ws';
 
@@ -117,6 +117,7 @@ export interface PostTable {
 	group_id: Unupdateable<number>;
 	user_id: Unupdateable<number>;
 	is_notice: ColumnType<boolean>;
+	title: ColumnType<string>;
 	content: ColumnType<string>;
 	created_at: GeneratedAlways<Date>;
 	deleted_at: Uninsertable<Date | null>;
@@ -135,7 +136,6 @@ export interface ScheduleTable {
 	start_at: ColumnType<Date>;
 	end_at: ColumnType<Date>;
 	address: ColumnType<string>;
-	place: ColumnType<string>;
 	description: ColumnType<string>;
 	created_at: GeneratedAlways<Date>;
 	deleted_at: Uninsertable<Date | null>;
@@ -200,16 +200,14 @@ export interface UserLostPasswordTable {
 
 export interface NotificationTable {
 	id: GeneratedAlways<number>;
-	type: Unupdateable<number>;
-	target_id: Unupdateable<number>;
+	user_id: Unupdateable<number>;
 	content: Unupdateable<string>;
 	created_at: GeneratedAlways<Date>;
 }
 
-export interface NotificationSettingTable {
+export interface UserSettingTable {
 	user_id: Unupdateable<number>;
-	is_application_notice_enabled: Generated<boolean>;
-	group_notice_type: Generated<GroupNoticeTypes>;
+	is_group_notice_enabled: Generated<boolean>;
 	is_post_enabled: Generated<boolean>;
 	is_schedule_enabled: Generated<boolean>;
 	is_fee_enabled: Generated<boolean>;
@@ -237,7 +235,7 @@ export interface Database {
 	chat_message: ChatMessageTable;
 	verification: VerificationTable;
 	notification: NotificationTable;
-	notification_setting: NotificationSettingTable;
+	user_setting: UserSettingTable;
 }
 
 export type Media = Selectable<CamelizeKeys<MediaTable>>;
@@ -282,7 +280,7 @@ export type UserLostPassword = Selectable<CamelizeKeys<UserLostPasswordTable>>;
 
 export type Notification = Selectable<CamelizeKeys<NotificationTable>>;
 
-export type NotificationSetting = Selectable<CamelizeKeys<NotificationSettingTable>>;
+export type UserSetting = Selectable<CamelizeKeys<UserSettingTable>>;
 
 export interface Pagenation {
 	index?: number;
@@ -296,12 +294,13 @@ export interface Calender {
 	length: number;
 }
 
+// @ts-expect-error
 export interface UserWebSocket extends WebSocket {
 	userId: number;
 	authAt: number;
 	authInterval: NodeJS.Timeout;
-	setting: Omit<NotificationSetting, 'userId'>;
-	send: (message: unknown) => void;
+	setting: Omit<UserSetting, 'userId'>;
+	send: (message: unknown, shouldInsert?: boolean) => void;
 }
 
 export type WebSocketEventHandler<T> = (socket: UserWebSocket, data: T) => PromiseLike<void> | void;
