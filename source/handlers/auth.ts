@@ -1,4 +1,4 @@
-import { BadRequest } from '@library/httpError';
+import { BadRequest, Unauthorized } from '@library/httpError';
 import JsonWebToken from '@library/jsonWebToken';
 import { DoneFuncWithErrOrRes, FastifyReply, FastifyRequest } from 'fastify';
 
@@ -24,7 +24,7 @@ export default function authHandler(request: FastifyRequest, reply: FastifyReply
 	}
 
 	if(!jsonWebToken.isValid()) {
-		done(new BadRequest('Authroization value must be valid json web token'));
+		done(new Unauthorized('Authroization value must be valid json web token'));
 
 		return;
 	}
