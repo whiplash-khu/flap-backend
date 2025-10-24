@@ -6,6 +6,7 @@ import verificationSchema from '@schemas/verification';
 import getUserController from './getUser.controller';
 import patchUserController from './patchUser.controller';
 import deleteUserController from './deleteUser.controller';
+import userSettingModule from './setting/userSetting.module';
 
 export default new Module('users', [
 	{
@@ -69,4 +70,4 @@ export default new Module('users', [
 				.prop('userId', userSchema['id'].required()),
 		}
 	}
-]);
+], [userSettingModule]);
