@@ -1,8 +1,10 @@
 import Ajv, { ValidateFunction } from 'ajv';
 import uri from 'fast-uri';
 import type { JSONSchema } from 'fluent-json-schema';
-import type { UserWebSocket, WebSocketEventHandler } from './type';
-import { WebSocketCloseCodes } from './constant';
+import type { NotificationTable, UserWebSocket, WebSocketEventHandler } from './type';
+import { EventTypes, WebSocketCloseCodes } from './constant';
+import { kysely } from './database';
+import { Insertable } from 'kysely';
 
 export class WebSocketEvent<T> {
 	public static validator: Ajv = new Ajv({
@@ -20,11 +22,27 @@ export class WebSocketEvent<T> {
 
 export class WebSocketManager extends Map<number, UserWebSocket> {
 	public set(key: number, value: UserWebSocket): this {
-		const send: typeof value.send = value.send.bind(value);
+		const send: typeof WebSocket['prototype']['send'] = WebSocket['prototype'].send.bind(value);
 
 		Object.assign(value, {
-			send: function (value: unknown): void {
-				send(JSON.stringify(value));
+			send: function (message: {
+				type: EventTypes
+			} & Record<string, unknown> | string, shouldInsert: boolean = true): void {
+				const content: string = shouldInsert ? JSON.stringify(message) : message as string;
+
+				send(content);
+
+				if(shouldInsert) {
+					kysely.insertInto('notification')
+						.values({
+							user_id: key,
+							content: content
+						})
+						.executeTakeFirstOrThrow()
+						.catch(function (error: unknown): void {
+							sockets.delete(key, error);
+						});
+				}
 			},
 			pongAt: 0,
 			authInterval: global.setInterval(function (): void {
@@ -74,26 +92,77 @@ export class WebSocketManager extends Map<number, UserWebSocket> {
 		}
 
 		if(error instanceof Error) {
-			socket.close(WebSocketCloseCodes['ABNORMAL_CLOSURE'], error['message']);
+			socket.close(WebSocketCloseCodes['INTERNAL_ERROR'], error['message']);
 
 			return true;
 		}
 
-		socket.close(WebSocketCloseCodes['ABNORMAL_CLOSURE'], String(error));
+		socket.close(WebSocketCloseCodes['INTERNAL_ERROR'], String(error));
 		
 		return true;
 	}
 
-	public send(keys: number[], message: unknown): void {
+	public send(keys: number[] | {
+		userId: number;
+	}[], message: {
+		type: EventTypes
+	} & Record<string, unknown>): void {
+		const isNested: boolean = typeof keys[0] !== 'number';
+		const notificationInserts: Insertable<NotificationTable>[] = [];
+		const content: string = JSON.stringify(message);
+		
 		for(let i: number = 0; i < keys['length']; i++) {
-			const socket: UserWebSocket | undefined = super.get(keys[i]);
+			const socket: UserWebSocket | undefined = super.get(isNested ? (keys[i] as {
+				userId: number;
+			})['userId'] : keys[i] as number);
 
 			if(socket === undefined) {
 				continue;
 			}
 
-			socket.send(message);
+			switch(message['type']) {
+				case EventTypes['CREATE_FEE']: {
+					if(socket['setting']['isFeeEnabled']) {
+						break;
+					}
+
+					continue;
+				}
+				case EventTypes['CREATE_SCHEDULE']: {
+					if(socket['setting']['isScheduleEnabled']) {
+						break;
+					}
+
+					continue;
+				}
+				case EventTypes['CREATE_POST']: {
+					if(socket['setting']['isPostEnabled']) {
+						break;
+					}
+
+					continue;
+				}
+				case EventTypes['CREATE_NOTICE']: {
+					if(socket['setting']['isGroupNoticeEnabled']) {
+						break;
+					}
+
+					continue;
+				}
+			}
+
+			notificationInserts.push({
+				user_id: socket['userId'],
+				content: content
+			})
+
+			socket.send(content, false);
 		}
+
+		kysely.insertInto('notification')
+			.values(notificationInserts)
+			.executeTakeFirstOrThrow()
+			.catch()
 	}
 }
 

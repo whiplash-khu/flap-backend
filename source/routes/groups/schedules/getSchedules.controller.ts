@@ -29,7 +29,7 @@ export default function (request: FastifyRequest<{
 				.where('group.id', '=', request['params']['groupId'])
 				.where('group.deleted_at', 'is', null)
 				.executeTakeFirst()
-				.then(function (groupWithUser?: Nullable<Pick<GroupUser, 'userId'>>): Promise<Pick<Schedule, 'id' | 'name' | 'startAt' | 'endAt' | 'place'>[]> {
+				.then(function (groupWithUser?: Nullable<Pick<GroupUser, 'userId'>>): Promise<Pick<Schedule, 'id' | 'name' | 'startAt' | 'endAt' | 'address'>[]> {
 					if(groupWithUser === undefined) {
 						throw new NotFound('Params["groupId"] must be valid');
 					}
@@ -46,7 +46,7 @@ export default function (request: FastifyRequest<{
 							'name',
 							'start_at as startAt',
 							'end_at as endAt',
-							'place'
+							'address'
 						])
 						.where('group_id', '=', request['params']['groupId'])
 						// first day of month - day of week = start of calender
@@ -57,7 +57,7 @@ export default function (request: FastifyRequest<{
 						.orderBy('end_at')
 						.execute();
 				})
-				.then(function (schedules: Pick<Schedule, 'id' | 'name' | 'startAt' | 'endAt' | 'place'>[]): void {
+				.then(function (schedules: Pick<Schedule, 'id' | 'name' | 'startAt' | 'endAt' | 'address'>[]): void {
 					reply.send(schedules);
 				});
 		});

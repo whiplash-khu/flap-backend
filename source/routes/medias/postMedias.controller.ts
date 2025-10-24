@@ -22,7 +22,7 @@ export default function (request: FastifyRequest, reply: FastifyReply): Promise<
 				.onConflict(function (builder: OnConflictBuilder<Database, 'media'>): OnConflictUpdateBuilder<Database, 'media'> {
 					return builder.column('hash')
 						.doUpdateSet({
-							hash: sql`excluded.hash`
+							hash: sql.raw('excluded.hash')
 						});
 				})
 				.returning([
@@ -35,7 +35,7 @@ export default function (request: FastifyRequest, reply: FastifyReply): Promise<
 				}): Promise<PutObjectCommandOutput> | undefined {
 					mediaId = media['id'];
 
-					if(now !== media['createdAt']) {
+					if(String(now) !== media['createdAt'] as unknown as string) {
 						return;
 					}
 

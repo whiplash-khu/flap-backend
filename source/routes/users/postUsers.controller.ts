@@ -52,7 +52,7 @@ export default function (request: FastifyRequest<{
 				.then(function (_user: Pick<User, 'id'>): Promise<InsertResult> {
 					user['id'] = _user['id'];
 
-					return transaction.insertInto('notification_setting')
+					return transaction.insertInto('user_setting')
 						.values({
 							user_id: user['id']
 						})

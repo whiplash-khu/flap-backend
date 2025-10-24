@@ -4,6 +4,7 @@ import { PolicyViolation, sockets, WebSocketEvent } from '@library/websocket';
 import S from 'fluent-json-schema';
 import chatUserSchema from '@schemas/chatUser';
 import { ExpressionBuilder, ExpressionWrapper, Insertable, InsertResult, Transaction } from 'kysely';
+import { EventTypes } from '@library/constant';
 
 export default new WebSocketEvent(function (socket: UserWebSocket, data: {
 	userIds: User['id'][];
@@ -74,7 +75,12 @@ export default new WebSocketEvent(function (socket: UserWebSocket, data: {
 						.executeTakeFirstOrThrow();
 				})
 				.then(function (): void {
-					sockets.send(data['userIds'], '{"type":"CREATE_CHAT","data":{"id":' + chat['id'] + '}}');
+					sockets.send(data['userIds'], {
+						type: EventTypes['CREATE_CHAT'],
+						data: {
+							id: chat['id']
+						}
+					});
 				});
 		});
 }, S.object()

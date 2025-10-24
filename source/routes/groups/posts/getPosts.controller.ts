@@ -15,7 +15,7 @@ export default function (request: FastifyRequest<{
 		.setAccessMode('read only')		 
 		.setIsolationLevel('repeatable read')
 		.execute(function (transaction: Transaction<Database>): Promise<void> {
-			const posts: (Pick<Post, 'id' | 'content' | 'createdAt' | 'isNotice'> & {
+			const posts: (Pick<Post, 'id' | 'title' | 'content' | 'createdAt' | 'isNotice'> & {
 				user: Pick<User, 'id' | 'name'> & {
 					media: Pick<Media, 'id' | 'hash' | 'type'>;
 				};
@@ -34,7 +34,7 @@ export default function (request: FastifyRequest<{
 				.where('group.id', '=', request['params']['groupId'])
 				.where('group.deleted_at', 'is', null)
 				.executeTakeFirst()
-				.then(function (groupWithUser?: Nullable<Pick<Post, 'userId'>>): Promise<Pick<Post & User & Media, 'id' | 'content' | 'createdAt' | 'isNotice' | 'userId' | 'name' | 'mediaId' | 'hash' | 'type'>[]> {
+				.then(function (groupWithUser?: Nullable<Pick<Post, 'userId'>>): Promise<Pick<Post & User & Media, 'id' | 'title' | 'content' | 'createdAt' | 'isNotice' | 'userId' | 'name' | 'mediaId' | 'hash' | 'type'>[]> {
 					if(groupWithUser === undefined) {
 						throw new NotFound('Params["groupId"] must be valid');
 					}
@@ -48,6 +48,7 @@ export default function (request: FastifyRequest<{
 						.innerJoin('media', 'user.media_id', 'media.id')
 						.select([
 							'post.id',
+							'post.title',
 							'post.content',
 							'post.created_at as createdAt',
 							'post.is_notice as isNotice',
@@ -59,14 +60,14 @@ export default function (request: FastifyRequest<{
 						])
 						.where('post.group_id', '=', request['params']['groupId'])
 						.where('post.deleted_at', 'is', null)
-						.$if(typeof request['query']['index'] === 'number', function (queryBuilder: SelectQueryBuilder<Database, 'post' | 'user' | 'media', Pick<Post & User & Media, 'id' | 'content' | 'createdAt' | 'isNotice' | 'userId' | 'name' | 'mediaId' | 'hash' | 'type'>>): typeof queryBuilder {
+						.$if(typeof request['query']['index'] === 'number', function (queryBuilder: SelectQueryBuilder<Database, 'post' | 'user' | 'media', Pick<Post & User & Media, 'id' | 'title' | 'content' | 'createdAt' | 'isNotice' | 'userId' | 'name' | 'mediaId' | 'hash' | 'type'>>): typeof queryBuilder {
 							return queryBuilder.where('post.id', getOperator(request['query']), request['query']['index'] as number);
 						}) 
 						.orderBy('post.id', 'desc')
 						.limit(request['query']['size'])
 						.execute();
 				})
-				.then(function (_posts: Pick<Post & User & Media, 'id' | 'content' | 'createdAt' | 'isNotice' | 'userId' | 'name' | 'mediaId' | 'hash' | 'type'>[]): Promise<(Pick<PostReaction, 'postId' | 'emoji'> & {
+				.then(function (_posts: Pick<Post & User & Media, 'id' | 'title' | 'content' | 'createdAt' | 'isNotice' | 'userId' | 'name' | 'mediaId' | 'hash' | 'type'>[]): Promise<(Pick<PostReaction, 'postId' | 'emoji'> & {
 					count: number;
 					isReacted: boolean;
 				})[]> {
@@ -76,6 +77,7 @@ export default function (request: FastifyRequest<{
 						postIds.push(_posts[i]['id']);
 						posts.push({
 							id: _posts[i]['id'],
+							title: _posts[i]['title'],
 							content: _posts[i]['content'],
 							createdAt: _posts[i]['createdAt'],
 							isNotice: _posts[i]['isNotice'],

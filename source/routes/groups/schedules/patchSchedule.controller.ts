@@ -10,7 +10,7 @@ export default function (request: FastifyRequest<{
 		groupId: Schedule['groupId'];
 		scheduleId: Schedule['id'];
 	};
-	Body: Partial<Pick<Schedule, 'name' | 'address' | 'place' | 'description'> & Record<'startAt' | 'endAt', string>>;
+	Body: Partial<Pick<Schedule, 'name' | 'address' | 'description'> & Record<'startAt' | 'endAt', string>>;
 }>, reply: FastifyReply): Promise<void> {
 	return kysely.transaction()
 		.setAccessMode('read write')
@@ -109,7 +109,6 @@ export default function (request: FastifyRequest<{
 						.set({
 							name: request['body']['name'],
 							address: request['body']['address'],
-							place: request['body']['place'],
 							description: request['body']['description']
 						})
 						.$if(shouldUpdateStartAt, function (queryBuilder: UpdateQueryBuilder<Database, "schedule", "schedule", UpdateResult>): typeof queryBuilder {

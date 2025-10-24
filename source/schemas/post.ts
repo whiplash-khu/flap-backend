@@ -9,6 +9,9 @@ export default {
 	groupId: groupSchema['id'],
 	userId: userSchema['id'],
 	isNotice: S.boolean(),
+	title: S.string()
+		.minLength(1)
+		.maxLength(24),
 	content: S.string()
 		.minLength(1)
 		.maxLength(160)

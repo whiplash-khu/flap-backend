@@ -21,7 +21,6 @@ export default new Module(':groupId/schedules', [
 				.prop('startAt', scheduleSchema['startAt'].required())
 				.prop('endAt', scheduleSchema['endAt'].required())
 				.prop('address', scheduleSchema['address'].required())
-				.prop('place', scheduleSchema['place'].required())
 				.prop('description', scheduleSchema['description'].required())
 		}
 	},
@@ -65,7 +64,6 @@ export default new Module(':groupId/schedules', [
 				.prop('startAt', scheduleSchema['startAt'])
 				.prop('endAt', scheduleSchema['endAt'])
 				.prop('address', scheduleSchema['address'])
-				.prop('place', scheduleSchema['place'])
 				.prop('description', scheduleSchema['description'])
 				.anyOf([
 					S.object()

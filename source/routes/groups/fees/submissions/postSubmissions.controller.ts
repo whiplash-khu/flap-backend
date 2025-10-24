@@ -14,7 +14,7 @@ export default function (request: FastifyRequest<{
 	};
 }>, reply: FastifyReply): Promise<void> {
 	return kysely.transaction()
-		.setAccessMode('read only')
+		.setAccessMode('read write')
 		.setIsolationLevel('serializable')
 		.execute(function (transaction: Transaction<Database>): Promise<void> {
 			return transaction.selectFrom('group')

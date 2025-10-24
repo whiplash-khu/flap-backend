@@ -1,8 +1,9 @@
-import { ScheduleAttendanceStatus } from '@library/constant';
+import { EventTypes, ScheduleAttendanceStatus } from '@library/constant';
 import { kysely } from '@library/database';
 import { BadRequest, NotFound, Unauthorized } from '@library/httpError';
 import { getTimestamp, parseTime } from '@library/time';
 import { Database, Group, Schedule, ScheduleAttendance } from '@library/type';
+import { sockets } from '@library/websocket';
 import { FastifyReply, FastifyRequest } from 'fastify';
 import { ExpressionBuilder, InsertResult, RawBuilder, SelectQueryBuilder, sql, Transaction } from 'kysely';
 
@@ -10,7 +11,7 @@ export default function (request: FastifyRequest<{
 	Params: {
 		groupId: Group['id'];
 	};
-	Body: Pick<Schedule, 'name' | 'address' | 'place' | 'description'> & Record<'startAt' | 'endAt', number>;
+	Body: Pick<Schedule, 'name' | 'address' | 'description'> & Record<'startAt' | 'endAt', number>;
 }>, reply: FastifyReply): Promise<void> {
 	request['body']['startAt'] = parseTime(request['body']['startAt'] as unknown as string);
 	request['body']['endAt'] = parseTime(request['body']['endAt'] as unknown as string);
@@ -22,7 +23,7 @@ export default function (request: FastifyRequest<{
 		.setAccessMode('read write')
 		.setIsolationLevel('serializable')
 		.execute(function (transaction: Transaction<Database>): Promise<void> {
-			let scheduleId: Schedule['id'];
+			let schedule: Pick<Schedule, 'id'>;
 
 			return transaction.selectFrom('group')
 				.select('user_id as userId')
@@ -62,14 +63,13 @@ export default function (request: FastifyRequest<{
 							start_at: startAtTimestamp,
 							end_at: endAtTimestamp,
 							address: request['body']['address'],
-							place: request['body']['place'],
 							description: request['body']['description']
 						})
 						.returning('id')
 						.executeTakeFirstOrThrow();
 				})
-				.then(function (schedule: Pick<Schedule, 'id'>): Promise<InsertResult> {
-					scheduleId = schedule['id'];
+				.then(function (_schedule: Pick<Schedule, 'id'>): Promise<Pick<ScheduleAttendance, 'userId'>[]> {
+					schedule = _schedule;
 
 					return transaction.insertInto('schedule_attendance')
 						.columns([
@@ -80,7 +80,7 @@ export default function (request: FastifyRequest<{
 						.expression(function (epxressionBuilder: ExpressionBuilder<Database, 'schedule_attendance'>): SelectQueryBuilder<Database, 'user' | 'group_user', Omit<ScheduleAttendance, 'id'>> {
 							return epxressionBuilder.selectFrom('user')
 								.select([
-									sql.lit(scheduleId).as('scheduleId'),
+									sql.lit(_schedule['id']).as('scheduleId'),
 									'user.id as userId',
 									sql.lit(ScheduleAttendanceStatus['ABSENT']).as('status')
 								])
@@ -88,14 +88,26 @@ export default function (request: FastifyRequest<{
 								.innerJoin('group_user', 'user.id', 'group_user.user_id')
 								.where('group_user.group_id', '=', request['params']['groupId']);
 						})
-						.executeTakeFirstOrThrow();
+						.returning('user_id as userId')
+						.execute();
 				})
-				.then(function (): void {
+				.then(function (scheduleAttendances: Pick<ScheduleAttendance, 'userId'>[]): void {
+					for(let i: number = 0; i < scheduleAttendances['length']; i++) {
+						if(scheduleAttendances[i]['userId'] === request['userId']) {
+							scheduleAttendances.splice(i);
+
+							break;
+						}
+					}
+
+					sockets.send(scheduleAttendances, {
+						type: EventTypes['CREATE_SCHEDULE'],
+						data: schedule
+					});
+
 					reply.status(201)
-						.header('location', '/groups/' + request['params']['groupId'] + '/schedules/' + scheduleId)
-						.send({
-							id: scheduleId
-						});
+						.header('location', '/groups/' + request['params']['groupId'] + '/schedules/' + schedule['id'])
+						.send(schedule);
 				});
 		});
 }

@@ -18,7 +18,7 @@ const fastify: FastifyInstance = Fastify({
 	trustProxy: true,
 	exposeHeadRoutes: false,
 	disableRequestLogging: true,
-	loggerInstance: new Logger()
+	loggerInstance: Logger['instance']
 });
 
 fastify.setNotFoundHandler(notFoundHandler);
